@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Market Pulse</title>
+<meta name="theme-color" content="#0b1120">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Market Pulse">
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAEO0lEQVR4Xu3dO27bWhSGUSZIlyozSOnGs/EwPRs3Hk4KAYqgB8W9z5PUWrVECT5/PtGOc++P33/+LnDPT18WHjEOjIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIO4X/GnkPf++X315K+Pt/zlGvvhfzrcze0yzuaciHE09/75/fXxtrKMS1OtxDja2riJOT9rjKOh3DLm+axxQzqv87ZGfdYoRyuF2bh1dyJ3X6XWmIyjierLuP2sefoS5RMxjvqeHltPJRPx4/ODK1mqcVRWchiNpN+ScdSUPobWcm/MOKrJHcDMjKOO+ZeReIfGwUO+la0g8YdyWf5/k5l7ek7oO1vlKJU72stD+vp4C51ZN/5upUhuGXed91HxmoWUIy99iuudmCckxtHb+jLOZpiIcSTlsrFxGZNMxDgy+ixjOOMIyy2jRLQ3j0SvYxydRA9mBsYRk8tG+TKGXME4AkYtYxTj2Gr4MkrikXuucWySW0Z1uTPOPWtZjKOl9KmsiF4z+vhL/lb2uVw2Sk5li6fvqvwN7HIcV1+X8q/CiqdncFfTt3TJv1v5b+WoWpxHbhmXv6uxa3u6IV0/qvfP7/RZ1tVipkPsZhwbD37jw7bIXeowy1iWPdxzDDmkIS86m9nLkTukZck/Mf3cIzXjZOpxpJdxkrsLKXzRI5l3HLUOKTeRqONlY95y1FrG2cYLbnzYlUMuY8Yb0tzxbLdykLmXPuoypitH7nhCHn3KdHjp3ZnonqPn8Vy9VvqlD5yNicqRPp608hvVYy9jinuO/rOo4vDLGF8Oy5jZyHuOwmXM8G/Cjm3Y73OUL+PyYAqvFvIKHygnY8pReJa3x9PtwLq90Ax6l6P6LK4UXn/dSy2jdzkKT27L2Wx5TE67K0+r38dKh2WcuFGtpdPHSrdlNPqUecFsdPpYGbWMWr/o+5rLaP4T0oGzqJWQl11G23LMsww3IjmtbkinWsZZNAPRxx9MkxvSOZdxacs7fPFl1L/n2PJFn+QHTStv1SxOapajcBlDjuT2PQ95G3OqNo49LoN11W5IS/7AlTyXdqqNI/0TJ8uY1sj/ML5ZTK5mOULxsIz5VR7Hxn1Yxi7UH8fTfVjGXjQZx8o+LGNH+t2QmsXutCrHVTwsY48ajuO8D8vYqWo/Pud42paDXTMOHjIOjIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45eChf/e+QucvJIo2AAAAAElFTkSuQmCC">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAEO0lEQVR4Xu3dO27bWhSGUSZIlyozSOnGs/EwPRs3Hk4KAYqgB8W9z5PUWrVECT5/PtGOc++P33/+LnDPT18WHjEOjIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIO4X/GnkPf++X315K+Pt/zlGvvhfzrcze0yzuaciHE09/75/fXxtrKMS1OtxDja2riJOT9rjKOh3DLm+axxQzqv87ZGfdYoRyuF2bh1dyJ3X6XWmIyjierLuP2sefoS5RMxjvqeHltPJRPx4/ODK1mqcVRWchiNpN+ScdSUPobWcm/MOKrJHcDMjKOO+ZeReIfGwUO+la0g8YdyWf5/k5l7ek7oO1vlKJU72stD+vp4C51ZN/5upUhuGXed91HxmoWUIy99iuudmCckxtHb+jLOZpiIcSTlsrFxGZNMxDgy+ixjOOMIyy2jRLQ3j0SvYxydRA9mBsYRk8tG+TKGXME4AkYtYxTj2Gr4MkrikXuucWySW0Z1uTPOPWtZjKOl9KmsiF4z+vhL/lb2uVw2Sk5li6fvqvwN7HIcV1+X8q/CiqdncFfTt3TJv1v5b+WoWpxHbhmXv6uxa3u6IV0/qvfP7/RZ1tVipkPsZhwbD37jw7bIXeowy1iWPdxzDDmkIS86m9nLkTukZck/Mf3cIzXjZOpxpJdxkrsLKXzRI5l3HLUOKTeRqONlY95y1FrG2cYLbnzYlUMuY8Yb0tzxbLdykLmXPuoypitH7nhCHn3KdHjp3ZnonqPn8Vy9VvqlD5yNicqRPp608hvVYy9jinuO/rOo4vDLGF8Oy5jZyHuOwmXM8G/Cjm3Y73OUL+PyYAqvFvIKHygnY8pReJa3x9PtwLq90Ax6l6P6LK4UXn/dSy2jdzkKT27L2Wx5TE67K0+r38dKh2WcuFGtpdPHSrdlNPqUecFsdPpYGbWMWr/o+5rLaP4T0oGzqJWQl11G23LMsww3IjmtbkinWsZZNAPRxx9MkxvSOZdxacs7fPFl1L/n2PJFn+QHTStv1SxOapajcBlDjuT2PQ95G3OqNo49LoN11W5IS/7AlTyXdqqNI/0TJ8uY1sj/ML5ZTK5mOULxsIz5VR7Hxn1Yxi7UH8fTfVjGXjQZx8o+LGNH+t2QmsXutCrHVTwsY48ajuO8D8vYqWo/Pud42paDXTMOHjIOjIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45UA5iFMOlIM45eChf/e+QucvJIo2AAAAAElFTkSuQmCC">
+<style>
+:root{
+  --bg:#0b1120; --panel:#111a2e; --panel2:#16213a; --line:#22304d;
+  --text:#e6ecf7; --muted:#8fa0bf; --dim:#64748b;
+  --accent:#38bdf8; --up:#22c55e; --down:#f43f5e; --warn:#f59e0b;
+  --r:14px;
+  --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.num{font-variant-numeric:tabular-nums}
+
+/* Header */
+header.top{position:sticky;top:0;z-index:20;background:rgba(11,17,32,.92);backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:calc(var(--safe-t) + 10px) 16px 10px}
+.hrow{display:flex;align-items:center;gap:12px;max-width:1600px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;letter-spacing:.2px;font-size:17px;white-space:nowrap}
+.brand svg{flex:none}
+.hdate{color:var(--muted);font-size:13px;white-space:nowrap}
+.spacer{flex:1}
+.status{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;padding:5px 10px;border-radius:999px;
+  background:var(--panel2);border:1px solid var(--line);white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--dim)}
+.status.open .dot{background:var(--up);box-shadow:0 0 0 3px rgba(34,197,94,.2)}
+.status.ext .dot{background:var(--warn)}
+.clocks{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.clocks b{color:var(--text);font-weight:600}
+nav.desk{display:none;gap:4px}
+nav.desk button{background:none;border:1px solid transparent;color:var(--muted);font:inherit;font-size:14px;font-weight:600;
+  padding:6px 12px;border-radius:9px;cursor:pointer}
+nav.desk button.on{color:var(--text);background:var(--panel2);border-color:var(--line)}
+
+.tape{border-bottom:1px solid var(--line);min-height:46px;background:#0d1426}
+
+/* Layout */
+main{max-width:1600px;margin:0 auto;padding:14px 12px calc(84px + var(--safe-b))}
+.view{display:none}
+.view.active{display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.card h2{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.chead{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.chead .sub{margin-left:auto;font-size:12px;color:var(--dim)}
+.cbody{padding:14px}
+.w{position:relative}
+.w .tradingview-widget-container{height:100%;width:100%}
+.w-overview{height:560px}
+.w-heat{height:440px}
+.w-cal{height:640px}
+.w-news{height:720px}
+.wload{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:13px;pointer-events:none}
+.tradingview-widget-copyright{font-size:11px;color:var(--dim);padding:4px 10px}
+.tradingview-widget-copyright a{color:var(--dim)}
+
+/* Fed / rhythm cards */
+.fed{display:grid;grid-template-columns:1fr auto;gap:4px 14px;align-items:center}
+.fed .big{font-size:30px;font-weight:800;line-height:1}
+.fed .lbl{font-size:12px;color:var(--muted)}
+.fed .when{font-weight:600}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;background:rgba(56,189,248,.12);color:var(--accent);margin-left:6px;vertical-align:middle}
+.tag.warn{background:rgba(245,158,11,.14);color:var(--warn)}
+.rhythm{list-style:none;margin:0;padding:0}
+.rhythm li{display:grid;grid-template-columns:76px 1fr;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.rhythm li:last-child{border-bottom:0}
+.rhythm .t{font-weight:700;color:var(--accent)}
+.rhythm .d{color:var(--muted)}
+.rhythm .d b{color:var(--text);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{background:var(--panel2);border:1px solid var(--line);color:var(--text);font:inherit;font-size:13px;font-weight:600;
+  padding:6px 11px;border-radius:999px;cursor:pointer}
+.chip:hover{border-color:var(--accent)}
+.chip.on{background:var(--accent);color:#04121c;border-color:var(--accent)}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0}
+
+/* Links */
+.links{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.links a{display:block;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;color:var(--text);font-size:13.5px;font-weight:600}
+.links a span{display:block;color:var(--dim);font-size:11.5px;font-weight:500}
+.links a:hover{border-color:var(--accent);text-decoration:none}
+
+/* Playbook */
+.pb-intro{display:grid;gap:12px;grid-template-columns:1fr}
+.rule{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14px}
+.rule b{display:block;margin-bottom:3px}
+.rule p{margin:0;color:var(--muted)}
+.pb-tools{display:flex;flex-direction:column;gap:10px;margin:14px 0}
+.search{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--text);font:inherit;padding:10px 12px}
+.search:focus{outline:none;border-color:var(--accent)}
+.ind{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;overflow:hidden;scroll-margin-top:120px}
+.ind>button{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer}
+.ind>button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.ind .nm{font-weight:700;font-size:15.5px}
+.ind .meta{font-size:12.5px;color:var(--muted)}
+.ind .left{flex:1;min-width:0}
+.imp{font-size:11px;font-weight:800;letter-spacing:.04em;padding:3px 8px;border-radius:6px;white-space:nowrap}
+.imp.High{background:rgba(244,63,94,.15);color:#fb7185}
+.imp.Med{background:rgba(245,158,11,.15);color:var(--warn)}
+.chev{transition:transform .2s;color:var(--dim)}
+.ind.open .chev{transform:rotate(180deg)}
+.ind .body{display:none;padding:0 14px 14px}
+.ind.open .body{display:block}
+.ind p{margin:0 0 10px;font-size:14.5px}
+.ind .k{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);font-weight:700;margin:12px 0 5px}
+.sc{display:grid;grid-template-columns:1fr;gap:10px}
+.sc>div{border-radius:11px;padding:10px 12px;border:1px solid var(--line)}
+.sc .hot{background:rgba(244,63,94,.07);border-color:rgba(244,63,94,.3)}
+.sc .cool{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.3)}
+.sc h4{margin:0 0 4px;font-size:13px}
+.sc .hot h4{color:#fb7185}.sc .cool h4{color:#4ade80}
+.sc ul,.ind ul.watch{margin:0;padding-left:18px;font-size:14px}
+.sc li,.ind ul.watch li{margin:3px 0}
+.talk{margin-top:12px;background:rgba(56,189,248,.08);border-left:3px solid var(--accent);padding:9px 12px;border-radius:0 10px 10px 0;font-size:14px}
+.talk b{color:var(--accent)}
+.empty{color:var(--muted);text-align:center;padding:30px 0}
+
+footer{color:var(--dim);font-size:12px;text-align:center;padding:10px 16px 0}
+
+/* Mobile bottom nav */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(4,1fr);
+  background:rgba(13,20,38,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line);
+  padding:6px 4px calc(6px + var(--safe-b))}
+nav.tabs button{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600;color:var(--dim);padding:4px 0}
+nav.tabs button.on{color:var(--accent)}
+nav.tabs svg{width:22px;height:22px}
+
+/* Small phones */
+@media (max-width:520px){
+  .hdate,.clocks .loc{display:none}
+  .brand span.full{display:none}
+  .w-overview{height:520px}
+}
+@media (min-width:700px){
+  .sc{grid-template-columns:1fr 1fr}
+  .pb-intro{grid-template-columns:1fr 1fr}
+}
+/* Desktop dashboard */
+@media (min-width:1100px){
+  nav.tabs{display:none}
+  nav.desk{display:flex}
+  main{padding-bottom:30px}
+  body.dash #dash{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,.95fr);gap:14px;align-items:start}
+  body.dash .view.dashpart{display:block}
+  .w-cal{height:560px}
+  .w-news{height:900px}
+  .pb-wrap{max-width:1000px;margin:0 auto}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="hrow">
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,17 8,12 11.5,14.5 16.5,8 21,10"/></svg>
+      Market Pulse
+    </div>
+    <div class="hdate" id="hdate"></div>
+    <nav class="desk" id="desknav">
+      <button data-go="markets" class="on">Dashboard</button>
+      <button data-go="playbook">Release Playbook</button>
+    </nav>
+    <div class="spacer"></div>
+    <div class="clocks num"><span class="loc"><b id="clkLocal"></b> <span id="tzLocal"></span> · </span><b id="clkET"></b> ET</div>
+    <div class="status" id="mstatus"><span class="dot"></span><span id="mtext">—</span></div>
+  </div>
+</header>
+
+<div class="tape" id="tape"></div>
+
+<main>
+  <div id="dash">
+    <!-- MARKETS -->
+    <section class="view dashpart" id="v-markets">
+      <div class="card">
+        <div class="chead"><h2>Markets</h2><span class="sub">Tap a row to chart it</span></div>
+        <div class="w w-overview" data-widget="overview"><div class="wload">Loading quotes…</div></div>
+      </div>
+      <div class="card">
+        <div class="chead"><h2>S&amp;P 500 heatmap</h2><span class="sub">By sector · size = market cap</span></div>
+        <div class="w w-heat" data-widget="heatmap"><div class="wload">Loading heatmap…</div></div>
+      </div>
+    </section>
+
+    <!-- CALENDAR -->
+    <section class="view dashpart" id="v-calendar">
+      <div class="card">
+        <div class="chead"><h2>Next Fed decision</h2></div>
+        <div class="cbody">
+          <div class="fed">
+            <div>
+              <div class="when" id="fedWhen">—</div>
+              <div class="lbl" id="fedSub"></div>
+            </div>
+            <div style="text-align:right"><div class="big num" id="fedDays">—</div><div class="lbl">days</div></div>
+          </div>
+          <div class="note" id="fedBlackout"></div>
+          <div class="note"><a href="https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html" target="_blank" rel="noopener">Check rate-cut odds on CME FedWatch →</a></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="chead"><h2>US economic calendar</h2><span class="sub">Medium &amp; high impact</span></div>
+        <div class="w w-cal" data-widget="calendar"><div class="wload">Loading calendar…</div></div>
+        <div class="cbody" style="border-top:1px solid var(--line)">
+          <div class="k" style="font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);font-weight:700;margin-bottom:8px">Decode a release</div>
+          <div class="chips" id="decode"></div>
+          <p class="note">Compare <b>Actual</b> to <b>Forecast</b> (consensus). The market moves on the surprise, not the number itself.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="chead"><h2>Daily rhythm</h2><span class="sub" id="rhythmTz"></span></div>
+        <div class="cbody"><ul class="rhythm" id="rhythm"></ul></div>
+      </div>
+    </section>
+
+    <!-- NEWS -->
+    <section class="view dashpart" id="v-news">
+      <div class="card">
+        <div class="chead"><h2>Market news</h2><span class="sub">Live headlines</span></div>
+        <div class="w w-news" data-widget="news"><div class="wload">Loading headlines…</div></div>
+      </div>
+      <div class="card">
+        <div class="chead"><h2>Go deeper</h2></div>
+        <div class="cbody"><div class="links" id="links"></div></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- PLAYBOOK -->
+  <section class="view" id="v-playbook">
+    <div class="pb-wrap">
+      <div class="card">
+        <div class="chead"><h2>Release Playbook</h2><span class="sub">What a hot or cool print usually does</span></div>
+        <div class="cbody">
+          <div class="pb-intro">
+            <div class="rule"><b>1 · It's the surprise that counts</b><p>Markets already price in the consensus forecast. The move comes from how far the actual number lands from it, and from revisions to prior months.</p></div>
+            <div class="rule"><b>2 · Know the market's worry</b><p>When inflation is the fear, strong data is bad for stocks (higher yields). When growth is the fear, strong data is a relief. Watch how stocks and the 10-yr react to the first big print each month.</p></div>
+            <div class="rule"><b>3 · The 2-year leads</b><p>The 2-yr yield reacts most to changes in Fed expectations. A big move in it after a release tells you the market changed its rate path.</p></div>
+            <div class="rule"><b>4 · First move ≠ final move</b><p>Initial reactions at 7:30 CT often reverse by the open. Wait for the cash session before drawing conclusions for clients.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="pb-tools">
+        <input class="search" id="pbSearch" type="search" placeholder="Search releases (e.g. CPI, jobs, auction)…" autocomplete="off">
+        <div class="chips" id="pbCats"></div>
+      </div>
+      <div id="pbList"></div>
+    </div>
+  </section>
+
+  <footer>For personal market awareness, not investment advice. Quotes and news via TradingView widgets. Stock and index data may be delayed under exchange rules; forex and crypto are real-time.</footer>
+</main>
+
+<nav class="tabs" id="tabs">
+  <button data-go="markets" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,17 8,12 11.5,14.5 16.5,8 21,10"/></svg>Markets</button>
+  <button data-go="calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendar</button>
+  <button data-go="news"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h13v14H6a2 2 0 0 1-2-2V5z"/><path d="M17 9h3v8a2 2 0 0 1-2 2"/><path d="M8 9h5M8 13h5"/></svg>News</button>
+  <button data-go="playbook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-4a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h5z"/></svg>Playbook</button>
+</nav>
+
+<script>
+/* ================= CONFIG: edit symbols here ================= */
+const THEME = "dark";
+const TAPE = [
+  {proName:"FOREXCOM:SPXUSD", title:"S&P 500"},
+  {proName:"FOREXCOM:NSXUSD", title:"Nasdaq 100"},
+  {proName:"FOREXCOM:DJI",    title:"Dow 30"},
+  {proName:"TVC:US10Y",       title:"10-yr"},
+  {proName:"TVC:US02Y",       title:"2-yr"},
+  {proName:"TVC:VIX",         title:"VIX"},
+  {proName:"TVC:DXY",         title:"Dollar (DXY)"},
+  {proName:"TVC:USOIL",       title:"WTI crude"},
+  {proName:"OANDA:XAUUSD",    title:"Gold"},
+  {proName:"BITSTAMP:BTCUSD", title:"Bitcoin"}
+];
+const OVERVIEW_TABS = [
+  {title:"Indices", symbols:[
+    {s:"FOREXCOM:SPXUSD", d:"S&P 500"},
+    {s:"FOREXCOM:NSXUSD", d:"Nasdaq 100"},
+    {s:"FOREXCOM:DJI",    d:"Dow 30"},
+    {s:"FOREXCOM:US2000", d:"Russell 2000"},
+    {s:"CME_MINI:ES1!",   d:"S&P 500 futures"},
+    {s:"CME_MINI:NQ1!",   d:"Nasdaq 100 futures"}
+  ]},
+  {title:"Rates", symbols:[
+    {s:"TVC:US02Y", d:"2-yr Treasury yield"},
+    {s:"TVC:US05Y", d:"5-yr Treasury yield"},
+    {s:"TVC:US10Y", d:"10-yr Treasury yield"},
+    {s:"TVC:US30Y", d:"30-yr Treasury yield"},
+    {s:"TVC:US03MY", d:"3-mo T-bill yield"}
+  ]},
+  {title:"Commodities", symbols:[
+    {s:"TVC:USOIL",     d:"WTI crude oil"},
+    {s:"TVC:UKOIL",     d:"Brent crude oil"},
+    {s:"OANDA:XAUUSD",  d:"Gold"},
+    {s:"OANDA:XAGUSD",  d:"Silver"},
+    {s:"NYMEX:NG1!",    d:"Natural gas"},
+    {s:"COMEX:HG1!",    d:"Copper"}
+  ]},
+  {title:"Vol & FX", symbols:[
+    {s:"TVC:VIX",    d:"VIX (fear gauge)"},
+    {s:"TVC:DXY",    d:"US Dollar Index"},
+    {s:"FX:EURUSD",  d:"EUR / USD"},
+    {s:"FX:USDJPY",  d:"USD / JPY"},
+    {s:"FX:GBPUSD",  d:"GBP / USD"}
+  ]},
+  {title:"Crypto", symbols:[
+    {s:"BITSTAMP:BTCUSD", d:"Bitcoin"},
+    {s:"BITSTAMP:ETHUSD", d:"Ethereum"}
+  ]}
+];
+
+/* FOMC decision days (2nd day of meeting), 2:00 PM ET. SEP = projections + dot plot. Source: federalreserve.gov */
+const FOMC = [
+  ["2026-12-09","Dec 8–9",true],
+  ["2027-01-27","Jan 26–27",false],["2027-03-17","Mar 16–17",true],["2027-04-28","Apr 27–28",false],
+  ["2027-06-09","Jun 8–9",true],["2027-07-28","Jul 27–28",false],["2027-09-15","Sep 14–15",true],
+  ["2027-10-27","Oct 26–27",false],["2027-12-08","Dec 7–8",true]
+];
+/* NYSE full-day holidays and 1 PM ET early closes */
+const HOLIDAYS = ["2026-11-26","2026-12-25","2027-01-01","2027-01-18","2027-02-15","2027-03-26","2027-05-31","2027-06-18","2027-07-05","2027-09-06","2027-11-25","2027-12-24"];
+const EARLY = ["2026-11-27","2026-12-24","2027-11-26"];
+
+const LINKS = [
+  ["CME FedWatch","Rate-cut odds","https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html"],
+  ["CNBC Markets","Live coverage","https://www.cnbc.com/markets/"],
+  ["Bloomberg Markets","Top stories","https://www.bloomberg.com/markets"],
+  ["WSJ Markets","Analysis","https://www.wsj.com/finance"],
+  ["Reuters Markets","Wire news","https://www.reuters.com/markets/"],
+  ["Yahoo Finance","Quotes & news","https://finance.yahoo.com/"],
+  ["BLS schedule","CPI, jobs, PPI dates","https://www.bls.gov/schedule/news_release/"],
+  ["BEA schedule","GDP, PCE dates","https://www.bea.gov/news/schedule"],
+  ["Fed calendar","FOMC & minutes","https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"],
+  ["Treasury yields","Daily curve","https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value_month=" + new Date().toISOString().slice(0,7).replace("-","")],
+  ["Treasury auctions","Upcoming","https://www.treasurydirect.gov/auctions/upcoming/"],
+  ["FRED","Economic data","https://fred.stlouisfed.org/"]
+];
+
+/* ================= RELEASE PLAYBOOK ================= */
+const PB = [
+ {id:"cpi", short:"CPI", name:"CPI — Consumer Price Index", cat:"Inflation", imp:"High",
+  when:"Monthly, usually 2nd week · 8:30 AM ET · BLS",
+  what:"Measures the change in prices consumers pay for a basket of goods and services. Headline includes food and energy; Core strips them out and is the number the market trades.",
+  why:"The single biggest input to rate expectations. The 2-year yield, the dollar and rate-sensitive stocks reprice within seconds.",
+  hot:["2-yr yield jumps most; 10-yr follows","Rate-cut odds fall (check FedWatch)","Dollar firms; gold often softer","Stocks dip — tech/growth, small caps, REITs and homebuilders hit hardest"],
+  cool:["Yields fall, led by the 2-yr","Rate-cut odds rise","Dollar softens; gold supported","Broad rally — small caps, REITs, homebuilders and tech lead"],
+  watch:["Core month-over-month vs consensus. A 0.1-pt miss is a big deal; ~0.17%/month annualizes to 2%","Shelter, and \"supercore\" (services ex-housing)","3- and 6-month annualized trend, not just one month"],
+  talk:"One month doesn't make a trend — the Fed looks at the 3-to-6-month direction, and so do we."},
+ {id:"pce", short:"PCE", name:"PCE — Personal Consumption Expenditures prices", cat:"Inflation", imp:"High",
+  when:"Monthly, late in the month · 8:30 AM ET · BEA (Personal Income & Outlays)",
+  what:"Inflation measured across everything consumers and others spend on their behalf. Core PCE is the Fed's official 2% target gauge.",
+  why:"It's the Fed's preferred measure, but economists estimate it closely from CPI and PPI, so surprises are usually small. The same report carries consumer spending and the savings rate.",
+  hot:["Yields edge higher, cut odds dip","Dollar up modestly","Mild pressure on growth stocks"],
+  cool:["Yields drift lower","Supports the case for cuts","Mild lift to equities, bonds"],
+  watch:["Core PCE month-over-month vs the estimate already implied by CPI/PPI","Real (inflation-adjusted) consumer spending","Personal savings rate — how much cushion households have"],
+  talk:"This is the inflation number the Fed actually targets. It confirmed what CPI told us earlier in the month."},
+ {id:"ppi", short:"PPI", name:"PPI — Producer Price Index", cat:"Inflation", imp:"Med",
+  when:"Monthly, around CPI week · 8:30 AM ET · BLS",
+  what:"Prices received by producers — wholesale and business-to-business inflation.",
+  why:"Pipeline signal for consumer inflation. Some pieces (airfares, medical care, portfolio-management fees) feed directly into the Core PCE estimate.",
+  hot:["Yields tick up on pipeline-inflation worries","Margin worries for companies that can't pass costs on"],
+  cool:["Yields ease","Read-through to a softer Core PCE"],
+  watch:["Components that map into PCE","Final demand ex food, energy & trade services"],
+  talk:"Wholesale prices are a preview of what may show up on store shelves in the months ahead."},
+ {id:"jobs", short:"Jobs", name:"Jobs Report — Employment Situation", cat:"Labor", imp:"High",
+  when:"Monthly, usually 1st Friday · 8:30 AM ET · BLS",
+  what:"Nonfarm payrolls (jobs added), the unemployment rate, and average hourly earnings, plus revisions to the prior two months.",
+  why:"The Fed's other mandate is maximum employment. This is the most complete monthly read on whether the economy is overheating or cracking.",
+  hot:["Yields and the dollar rise; cut odds fall","Stocks: fine if wages are tame (\"Goldilocks\"), negative if inflation is the worry","Cyclicals and banks tend to outperform"],
+  cool:["Yields fall sharply; cut odds rise","Modest miss: stocks often rally on cut hopes","Big miss: recession fears — defensives (utilities, staples, health care) and Treasuries outperform"],
+  watch:["Unemployment rate trend — a 3-month average rising 0.5 pt above its 12-month low (the Sahm rule) has historically flagged recessions","Average hourly earnings month-over-month (wage-driven inflation)","Revisions — they can flip the story"],
+  talk:"Look past the headline payroll number — the unemployment-rate trend and revisions tell us more about where the economy is heading."},
+ {id:"claims", short:"Claims", name:"Initial Jobless Claims", cat:"Labor", imp:"Med",
+  when:"Weekly, Thursdays · 8:30 AM ET · Dept. of Labor",
+  what:"New filings for unemployment benefits last week; continuing claims count people still receiving them.",
+  why:"The most timely labor-market signal — layoffs show up here before they show up in the jobs report.",
+  hot:["(Low claims) Steady labor market — mildly higher yields"],
+  cool:["(Rising claims) Yields slip, cut odds rise","A sustained climb raises recession talk"],
+  watch:["4-week average, not one noisy week","Continuing claims — rising means it's getting harder to find a new job","Holiday/seasonal distortions"],
+  talk:"Layoffs remain low by historical standards — or, if rising: we're watching whether this is a blip or a trend."},
+ {id:"jolts", short:"JOLTS", name:"JOLTS — Job Openings & Labor Turnover", cat:"Labor", imp:"Med",
+  when:"Monthly, early in the month · 10:00 AM ET · BLS",
+  what:"Job openings, hires, quits and layoffs, with a one-month lag.",
+  why:"Gauges labor demand. The quits rate is a good proxy for worker confidence and future wage growth.",
+  hot:["(More openings/quits) Labor tightness — yields up a touch"],
+  cool:["(Fewer openings/quits) Cooling labor demand — yields down"],
+  watch:["Openings per unemployed worker","Quits rate","Small survey — big revisions are common"],
+  talk:"Employers are still hiring, but workers are less eager to switch jobs — that eases wage pressure."},
+ {id:"adp", short:"ADP", name:"ADP Private Payrolls", cat:"Labor", imp:"Med",
+  when:"Monthly, Wednesday before the jobs report · 8:15 AM ET · ADP",
+  what:"Private-sector employment estimate from payroll-processing data.",
+  why:"A preview of Friday's report, though the month-to-month correlation is loose. A big surprise can still move yields.",
+  hot:["Yields tick up ahead of Friday"],cool:["Yields tick down; cut odds edge up"],
+  watch:["Pay growth for job-stayers vs job-changers","Treat it as a hint, not a forecast"],
+  talk:"ADP is a useful preview, but Friday's government report is the one the Fed weighs."},
+ {id:"fomc", short:"FOMC", name:"FOMC Rate Decision", cat:"Fed", imp:"High",
+  when:"8 meetings a year · Statement 2:00 PM ET, press conference 2:30 PM ET",
+  what:"The Federal Reserve sets the fed funds rate target. March, June, September and December add projections (the \"dot plot\").",
+  why:"Sets the cost of money for the whole economy. The decision is usually priced in beforehand, so the reaction comes from the guidance.",
+  hot:["(Hawkish: fewer cuts signaled, higher dots, inflation worry) 2-yr yield and dollar rise","Stocks fall, growth and small caps most"],
+  cool:["(Dovish: more cuts signaled, growth worry) Yields and dollar fall","Stocks and bonds rally; gold up"],
+  watch:["Check FedWatch odds beforehand — a surprise vs those odds is what moves markets","Statement wording changes vs last meeting","Dot plot median for next year; dissents","Chair's tone in the press conference — markets often reverse mid-presser","Minutes come out 3 weeks later"],
+  talk:"The decision was expected; what matters for portfolios is the path of rates over the next year."},
+ {id:"gdp", short:"GDP", name:"GDP — Gross Domestic Product", cat:"Growth", imp:"High",
+  when:"Quarterly: advance estimate ~4 weeks after quarter-end, then 2nd and 3rd estimates · 8:30 AM ET · BEA",
+  what:"Total output of the economy, reported as an annualized quarterly growth rate.",
+  why:"The broadest scorecard of growth. The advance estimate moves markets; later revisions rarely do.",
+  hot:["Yields rise; cyclicals (industrials, materials, financials) outperform","Can trim cut odds"],
+  cool:["Yields fall; recession talk picks up","Defensives and Treasuries outperform"],
+  watch:["Final sales to private domestic purchasers (core demand, strips out trade/inventory noise)","GDP price index","Consumer spending contribution"],
+  talk:"Headline GDP can be distorted by trade and inventories — underlying demand is the better signal."},
+ {id:"retail", short:"Retail", name:"Retail Sales", cat:"Consumer", imp:"High",
+  when:"Monthly, mid-month · 8:30 AM ET · Census Bureau",
+  what:"Sales at retailers and restaurants — the consumer's pulse. Not adjusted for inflation.",
+  why:"Consumer spending is roughly two-thirds of the economy. The \"control group\" feeds directly into GDP estimates.",
+  hot:["Yields up; consumer discretionary and retailers rally","Can trim cut odds"],
+  cool:["Yields down; retailers and discretionary fall","Fuels slowdown narrative"],
+  watch:["Control group (ex autos, gas, building materials, food services)","Prior-month revisions","Gas prices can swing the headline"],
+  talk:"The consumer is still spending — or, if weak: we're watching whether households are starting to pull back."},
+ {id:"ism", short:"ISM", name:"ISM Manufacturing & Services PMIs", cat:"Growth", imp:"High",
+  when:"Manufacturing: 1st business day · Services: 3rd business day · 10:00 AM ET",
+  what:"Purchasing-manager surveys. Above 50 = expansion, below 50 = contraction.",
+  why:"Earliest read on each month. Services covers most of the economy; the prices-paid components are watched as inflation signals.",
+  hot:["Yields up; cyclicals and industrials rally","High prices-paid = inflation worry"],
+  cool:["Sub-50 readings raise slowdown fears; yields fall","Defensives outperform"],
+  watch:["New orders (forward-looking)","Prices paid","Employment sub-index (preview of jobs report)"],
+  talk:"Business surveys are the first look at the month — they point to where the hard data is heading."},
+ {id:"umich", short:"Sentiment", name:"UMich Consumer Sentiment", cat:"Consumer", imp:"Med",
+  when:"Preliminary mid-month Friday, final at month-end · 10:00 AM ET",
+  what:"Survey of how consumers feel about finances and the economy, plus their inflation expectations.",
+  why:"The Fed watches long-run inflation expectations closely — if those rise, it gets more hawkish.",
+  hot:["Rising inflation expectations push yields up"],
+  cool:["Falling expectations ease yields"],
+  watch:["1-year and 5–10-year inflation expectations","Sentiment can diverge sharply from actual spending"],
+  talk:"How people feel and how they spend often diverge — spending data matters more for the economy."},
+ {id:"auction", short:"Auctions", name:"Treasury Auctions (10-yr & 30-yr)", cat:"Rates", imp:"Med",
+  when:"Monthly, typically mid-month · results at 1:00 PM ET · U.S. Treasury",
+  what:"The government sells new debt. Demand is judged by the yield it clears at versus where it was trading just before.",
+  why:"Weak demand pushes long-term yields up, which hits mortgage rates, stock valuations and bond prices.",
+  hot:["(Weak: \"tail\") Long yields jump; stocks and long bonds slip"],
+  cool:["(Strong: \"stop-through\") Yields dip; relief for stocks"],
+  watch:["Tail vs. when-issued yield","Bid-to-cover ratio","Indirect bidders (a proxy for foreign demand)"],
+  talk:"Big deficits mean lots of supply — auction demand tells us whether investors want to be paid more to hold it."},
+ {id:"earnings", short:"Mega-cap earnings", name:"Mega-cap Earnings", cat:"Earnings", imp:"High",
+  when:"Quarterly, earnings season (mid-Jan, Apr, Jul, Oct) · usually after the 3:00 PM CT close",
+  what:"Results and guidance from the largest S&P 500 companies.",
+  why:"A handful of mega-caps make up a large share of S&P 500 weight, so their results can move the whole index, especially on AI spending.",
+  hot:["(Beat + raise guidance) Index futures rally after hours","Read-through to suppliers (e.g., chipmakers)"],
+  cool:["(Miss or soft guidance) Index can slide even if the rest of the market is fine"],
+  watch:["Forward guidance matters more than the quarter","Capital spending plans (AI build-out)","After-hours futures reaction"],
+  talk:"Index concentration means a few companies drive returns — that's one reason we diversify beyond the big names."}
+];
+
+/* ================= helpers ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const LOCAL_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+function partsIn(tz, d=new Date()){
+  const p = new Intl.DateTimeFormat("en-US",{timeZone:tz,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",weekday:"short",hour12:false}).formatToParts(d);
+  const o = {}; p.forEach(x=>o[x.type]=x.value);
+  return {ymd:`${o.year}-${o.month}-${o.day}`, h:+o.hour%24, m:+o.minute, wd:o.weekday};
+}
+function tzAbbr(tz){
+  try{ return new Intl.DateTimeFormat("en-US",{timeZone:tz,timeZoneName:"short"}).formatToParts(new Date()).find(p=>p.type==="timeZoneName").value; }catch(e){ return ""; }
+}
+/* convert an ET wall-clock time today to a Date */
+function etToDate(ymd, hh, mm){
+  // find UTC offset for ET on that date by testing
+  const guess = new Date(`${ymd}T${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:00Z`);
+  const p = partsIn("America/New_York", guess);
+  const diffMin = ((p.h*60+p.m) - (hh*60+mm));
+  let adj = diffMin; if (adj > 720) adj -= 1440; if (adj < -720) adj += 1440;
+  return new Date(guess.getTime() - adj*60000);
+}
+const fmtLocal = (d, opts) => d.toLocaleTimeString([], Object.assign({hour:"numeric",minute:"2-digit"}, opts||{}));
+
+/* ================= clocks & market status ================= */
+function tick(){
+  const now = new Date();
+  $("#clkET").textContent = now.toLocaleTimeString("en-US",{timeZone:"America/New_York",hour:"numeric",minute:"2-digit"});
+  $("#clkLocal").textContent = fmtLocal(now);
+  $("#tzLocal").textContent = tzAbbr(LOCAL_TZ);
+  $("#hdate").textContent = now.toLocaleDateString([], {weekday:"long", month:"short", day:"numeric"});
+  const et = partsIn("America/New_York", now), t = et.h*60+et.m;
+  const weekend = et.wd==="Sat"||et.wd==="Sun", hol = HOLIDAYS.includes(et.ymd), early = EARLY.includes(et.ymd);
+  const close = early ? 13*60 : 16*60;
+  let cls="", txt="Closed";
+  if (weekend) txt = "Closed · weekend";
+  else if (hol) txt = "Closed · holiday";
+  else if (t >= 570 && t < close){ cls="open"; txt = early ? "Open · early close 1 PM ET" : "Market open"; }
+  else if (t >= 240 && t < 570){ cls="ext"; txt="Pre-market"; }
+  else if (t >= close && t < 20*60){ cls="ext"; txt="After hours"; }
+  $("#mstatus").className = "status " + cls; $("#mtext").textContent = txt;
+  renderFed(now);
+}
+function renderFed(now){
+  for (const [ymd,label,sep] of FOMC){
+    const dec = etToDate(ymd,14,0);
+    if (dec.getTime() + 60*60*1000 > now.getTime()){
+      const days = Math.max(0, Math.ceil((dec - now)/86400000));
+      const isToday = partsIn("America/New_York",now).ymd === ymd;
+      $("#fedDays").textContent = isToday ? "Today" : days;
+      $("#fedWhen").innerHTML = `FOMC ${esc(label)}` + (sep ? `<span class="tag">Dot plot</span>` : "");
+      $("#fedSub").textContent = `Decision ${dec.toLocaleDateString([], {weekday:"short", month:"short", day:"numeric"})} · ${fmtLocal(dec)} your time · presser 30 min later`;
+      // blackout: from 2nd Saturday before the meeting's first day through the Thursday after
+      const first = new Date(ymd+"T12:00:00Z"); first.setUTCDate(first.getUTCDate()-1);
+      const start = new Date(first); start.setUTCDate(start.getUTCDate() - ((first.getUTCDay()+1)%7) - 7);
+      const end = new Date(ymd+"T12:00:00Z"); end.setUTCDate(end.getUTCDate()+1);
+      const todayU = new Date(partsIn("America/New_York",now).ymd+"T12:00:00Z");
+      const f = d => d.toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"UTC"});
+      $("#fedBlackout").innerHTML = (todayU>=start && todayU<=end)
+        ? `<span class="tag warn">Blackout</span> Fed officials are not giving policy speeches until ${f(end)}.`
+        : `Fed speaker blackout runs ${f(start)} – ${f(end)}.`;
+      return;
+    }
+  }
+}
+
+/* ================= daily rhythm (shown in viewer's time zone) ================= */
+function renderRhythm(){
+  const ymd = partsIn("America/New_York").ymd;
+  const rows = [
+    [8,30,"<b>Big data drops</b> — CPI, PPI, jobs, claims, retail sales, GDP"],
+    [9,30,"<b>Opening bell</b> — first move after data settles"],
+    [10,0,"<b>Second wave</b> — ISM, JOLTS, consumer sentiment"],
+    [13,0,"<b>Treasury auction results</b> (when scheduled)"],
+    [14,0,"<b>FOMC statement</b> on Fed days; presser 30 min later"],
+    [16,0,"<b>Closing bell</b> — earnings releases follow"]
+  ];
+  $("#rhythmTz").textContent = "Your time (" + tzAbbr(LOCAL_TZ) + ")";
+  $("#rhythm").innerHTML = rows.map(([h,m,d]) => `<li><span class="t num">${fmtLocal(etToDate(ymd,h,m))}</span><span class="d">${d}</span></li>`).join("");
+}
+
+/* ================= TradingView widgets (lazy) ================= */
+const WIDGETS = {
+  tape: ["ticker-tape", {symbols:TAPE, showSymbolLogo:true, isTransparent:true, displayMode:"adaptive", colorTheme:THEME, locale:"en"}],
+  overview: ["market-overview", {colorTheme:THEME, dateRange:"1D", showChart:true, locale:"en", width:"100%", height:"100%",
+    largeChartUrl:"", isTransparent:true, showSymbolLogo:true, showFloatingTooltip:true,
+    plotLineColorGrowing:"rgba(56,189,248,1)", plotLineColorFalling:"rgba(244,63,94,1)",
+    gridLineColor:"rgba(34,48,77,0.6)", scaleFontColor:"rgba(143,160,191,1)",
+    belowLineFillColorGrowing:"rgba(56,189,248,0.12)", belowLineFillColorFalling:"rgba(244,63,94,0.12)",
+    belowLineFillColorGrowingBottom:"rgba(56,189,248,0)", belowLineFillColorFallingBottom:"rgba(244,63,94,0)",
+    symbolActiveColor:"rgba(56,189,248,0.12)", tabs:OVERVIEW_TABS.map(t=>({...t, originalTitle:t.title}))}],
+  heatmap: ["stock-heatmap", {exchanges:[], dataSource:"SPX500", grouping:"sector", blockSize:"market_cap_basic",
+    blockColor:"change", locale:"en", symbolUrl:"", colorTheme:THEME, hasTopBar:false, isDataSetEnabled:false,
+    isZoomEnabled:true, hasSymbolTooltip:true, isMonoSize:false, width:"100%", height:"100%"}],
+  calendar: ["events", {colorTheme:THEME, isTransparent:true, width:"100%", height:"100%", locale:"en",
+    importanceFilter:"0,1", countryFilter:"us"}],
+  news: ["timeline", {feedMode:"all_symbols", isTransparent:true, displayMode:"regular", width:"100%", height:"100%",
+    colorTheme:THEME, locale:"en"}]
+};
+const mounted = new Set();
+function mount(el, key){
+  if (mounted.has(el)) return; mounted.add(el);
+  const [name, cfg] = WIDGETS[key];
+  const box = document.createElement("div"); box.className = "tradingview-widget-container";
+  const inner = document.createElement("div"); inner.className = "tradingview-widget-container__widget";
+  inner.style.height = key==="tape" ? "auto" : "100%";
+  box.appendChild(inner);
+  const s = document.createElement("script");
+  s.type = "text/javascript"; s.async = true;
+  s.src = `https://s3.tradingview.com/external-embedding/embed-widget-${name}.js`;
+  s.text = JSON.stringify(cfg);
+  s.onload = () => { const l = el.querySelector(".wload"); if (l) setTimeout(()=>l.remove(), 1200); };
+  s.onerror = () => { const l = el.querySelector(".wload"); if (l) l.textContent = "Couldn't reach TradingView — this network may block it."; };
+  box.appendChild(s);
+  el.appendChild(box);
+}
+function mountVisible(){
+  document.querySelectorAll("[data-widget]").forEach(el => { if (el.offsetParent !== null) mount(el, el.dataset.widget); });
+}
+
+/* ================= navigation ================= */
+const desktop = window.matchMedia("(min-width:1100px)");
+let current = "markets";
+function go(view, opts={}){
+  current = view;
+  const isDesk = desktop.matches;
+  document.body.classList.toggle("dash", isDesk && view !== "playbook");
+  document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "v-"+view));
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.go === view));
+  document.querySelectorAll("#desknav button").forEach(b => b.classList.toggle("on", (b.dataset.go === "playbook") === (view === "playbook")));
+  try { localStorage.setItem("mp_view", view); } catch(e){}
+  if (!opts.keepScroll) window.scrollTo({top:0});
+  requestAnimationFrame(mountVisible);
+}
+document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => go(b.dataset.go)));
+desktop.addEventListener ? desktop.addEventListener("change", () => go(current, {keepScroll:true})) : desktop.addListener(() => go(current,{keepScroll:true}));
+
+/* ================= playbook rendering ================= */
+let pbCat = "All";
+function card(x){
+  const li = a => a.map(i => `<li>${esc(i)}</li>`).join("");
+  return `<div class="ind" id="pb-${x.id}">
+    <button aria-expanded="false"><div class="left"><div class="nm">${esc(x.name)}</div><div class="meta">${esc(x.when)}</div></div>
+      <span class="imp ${x.imp}">${x.imp==="Med"?"MEDIUM":"HIGH"}</span>
+      <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="body">
+      <p>${esc(x.what)}</p>
+      <div class="k">Why it matters</div><p>${esc(x.why)}</p>
+      <div class="sc"><div class="hot"><h4>▲ Hotter / stronger than expected</h4><ul>${li(x.hot)}</ul></div>
+        <div class="cool"><h4>▼ Cooler / weaker than expected</h4><ul>${li(x.cool)}</ul></div></div>
+      <div class="k">What to watch</div><ul class="watch">${li(x.watch)}</ul>
+      <div class="talk"><b>Client talking point:</b> “${esc(x.talk)}”</div>
+    </div></div>`;
+}
+function renderPB(){
+  const q = $("#pbSearch").value.trim().toLowerCase();
+  const list = PB.filter(x => (pbCat==="All" || x.cat===pbCat) &&
+    (!q || (x.name+" "+x.short+" "+x.cat+" "+x.what).toLowerCase().includes(q)));
+  $("#pbList").innerHTML = list.length ? list.map(card).join("") : `<div class="empty">No releases match.</div>`;
+  $("#pbList").querySelectorAll(".ind>button").forEach(b => b.addEventListener("click", () => {
+    const c = b.parentElement; c.classList.toggle("open"); b.setAttribute("aria-expanded", c.classList.contains("open"));
+  }));
+}
+function openPB(id){
+  pbCat = "All"; $("#pbSearch").value = ""; renderCats(); renderPB();
+  go("playbook");
+  const el = document.getElementById("pb-"+id);
+  if (el){ el.classList.add("open"); el.querySelector("button").setAttribute("aria-expanded","true");
+    setTimeout(() => el.scrollIntoView({behavior:"smooth", block:"start"}), 60); }
+}
+function renderCats(){
+  const cats = ["All", ...new Set(PB.map(x => x.cat))];
+  $("#pbCats").innerHTML = cats.map(c => `<button class="chip ${c===pbCat?"on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("");
+  $("#pbCats").querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => { pbCat = b.dataset.c; renderCats(); renderPB(); }));
+}
+
+/* ================= init ================= */
+$("#decode").innerHTML = PB.map(x => `<button class="chip" data-id="${x.id}">${esc(x.short)}</button>`).join("");
+$("#decode").querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => openPB(b.dataset.id)));
+$("#links").innerHTML = LINKS.map(([t,s,u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}<span>${esc(s)}</span></a>`).join("");
+$("#pbSearch").addEventListener("input", renderPB);
+renderCats(); renderPB(); renderRhythm(); tick();
+setInterval(tick, 20000);
+mount($("#tape"), "tape");
+let start = "markets"; try { start = localStorage.getItem("mp_view") || "markets"; } catch(e){}
+go(["markets","calendar","news","playbook"].includes(start) ? start : "markets");
+</script>
+</body>
+</html>
