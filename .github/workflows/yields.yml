@@ -1,0 +1,39 @@
+name: Update Treasury yields
+
+on:
+  schedule:
+    # Treasury posts the day's curve in the late afternoon ET; check a few times, plus a morning catch-up.
+    - cron: "35 21 * * 1-5"
+    - cron: "35 22 * * 1-5"
+    - cron: "35 23 * * 1-5"
+    - cron: "17 11 * * 2-6"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/yields.yml"
+      - "scripts/update_yields.py"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: yields
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch yields
+        run: python3 scripts/update_yields.py
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add yields.json
+          if git diff --cached --quiet; then echo "No change"; exit 0; fi
+          git commit -m "Update Treasury yields"
+          git pull --rebase origin main
+          git push origin HEAD:main

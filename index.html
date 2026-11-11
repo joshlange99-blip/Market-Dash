@@ -53,7 +53,7 @@ nav.desk button.on{color:var(--text);background:var(--panel2);border-color:var(-
 main{max-width:1600px;margin:0 auto;padding:14px 12px calc(84px + var(--safe-b))}
 .view{display:none}
 .view.active{display:block}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.card{scroll-margin-top:110px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
 .card h2{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
 .chead{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
 .chead .sub{margin-left:auto;font-size:12px;color:var(--dim)}
@@ -67,6 +67,32 @@ main{max-width:1600px;margin:0 auto;padding:14px 12px calc(84px + var(--safe-b))
 .wload{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:13px;pointer-events:none}
 .tradingview-widget-copyright{font-size:11px;color:var(--dim);padding:4px 10px}
 .tradingview-widget-copyright a{color:var(--dim)}
+
+/* Yields */
+.ystrip{display:flex;gap:16px;align-items:center;overflow-x:auto;white-space:nowrap;padding:7px 16px;border-bottom:1px solid var(--line);
+  background:#0d1426;font-size:13px;cursor:pointer;scrollbar-width:none}
+.ystrip::-webkit-scrollbar{display:none}
+.ystrip:empty{display:none}
+.ystrip .yl{color:var(--muted);font-weight:600;margin-right:5px}
+.ystrip .yv{font-weight:700}
+.ystrip .asof{color:var(--dim);font-size:12px;margin-left:auto}
+.pos{color:var(--up)} .neg{color:var(--down)} .flat{color:var(--dim)}
+table.yt{width:100%;border-collapse:collapse;font-size:14px}
+table.yt th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);font-weight:700;text-align:right;padding:0 6px 7px}
+table.yt th:first-child,table.yt td:first-child{text-align:left;padding-left:0}
+table.yt td{text-align:right;padding:7px 6px;border-top:1px solid var(--line)}
+table.yt td.ytm{font-weight:700;font-size:15px}
+table.yt tr.key td{background:rgba(56,189,248,.06)}
+table.yt tr.key td:first-child{box-shadow:inset 3px 0 0 var(--accent);padding-left:8px}
+.spreads{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.spreads>div{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:10px 12px}
+.spreads .sl{font-size:12px;color:var(--muted)}
+.spreads .sv{font-size:20px;font-weight:800}
+.spreads .ss{font-size:12px}
+.curve{margin-top:14px}
+.curve svg{width:100%;height:auto;display:block}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:4px;flex-wrap:wrap}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
 
 /* Fed / rhythm cards */
 .fed{display:grid;grid-template-columns:1fr auto;gap:4px 14px;align-items:center}
@@ -182,6 +208,7 @@ nav.tabs svg{width:22px;height:22px}
 </header>
 
 <div class="tape" id="tape"></div>
+<div class="ystrip" id="ystrip" role="button" tabindex="0" title="Treasury yields"></div>
 
 <main>
   <div id="dash">
@@ -192,9 +219,12 @@ nav.tabs svg{width:22px;height:22px}
         <div class="w w-overview" data-widget="overview"><div class="wload">Loading quotes…</div></div>
         <div class="cbody" style="border-top:1px solid var(--line);font-size:13px;color:var(--muted)">
           <b style="color:var(--text)">Reading the board:</b> Index quotes trade almost 24 hours, so before 8:30 CT they show where futures are pointing.
-          The Rates tab shows Treasury <i>prices</i>, which move opposite to yields — <span style="color:var(--up)">price up = yields down</span>.
-          Exact yields: <a href="https://www.cnbc.com/quotes/US10Y" target="_blank" rel="noopener">10-yr</a> ·
-          <a href="https://www.cnbc.com/quotes/US2Y" target="_blank" rel="noopener">2-yr</a>
+        </div>
+      </div>
+      <div class="card" id="yields">
+        <div class="chead"><h2>Treasury yields</h2><span class="sub" id="yAsOf">Yield to maturity · %</span></div>
+        <div class="cbody">
+          <div id="yBody"><div class="empty">Loading yields…</div></div>
         </div>
       </div>
       <div class="card">
@@ -288,8 +318,6 @@ const TAPE = [
   {proName:"FOREXCOM:SPXUSD", title:"S&P 500"},
   {proName:"FOREXCOM:NSXUSD", title:"Nasdaq 100"},
   {proName:"FOREXCOM:DJI",    title:"Dow 30"},
-  {proName:"OANDA:USB10YUSD", title:"10-yr note (price)"},
-  {proName:"OANDA:USB02YUSD", title:"2-yr note (price)"},
   {proName:"TVC:VIX",         title:"VIX"},
   {proName:"TVC:DXY",         title:"Dollar (DXY)"},
   {proName:"TVC:USOIL",       title:"WTI crude"},
@@ -302,12 +330,6 @@ const OVERVIEW_TABS = [
     {s:"FOREXCOM:NSXUSD", d:"Nasdaq 100"},
     {s:"FOREXCOM:DJI",    d:"Dow 30"},
     {s:"FOREXCOM:US2000", d:"Russell 2000"}
-  ]},
-  {title:"Rates", symbols:[
-    {s:"OANDA:USB02YUSD", d:"2-yr T-note (price)"},
-    {s:"OANDA:USB05YUSD", d:"5-yr T-note (price)"},
-    {s:"OANDA:USB10YUSD", d:"10-yr T-note (price)"},
-    {s:"OANDA:USB30YUSD", d:"30-yr T-bond (price)"}
   ]},
   {title:"Commodities", symbols:[
     {s:"TVC:USOIL",     d:"WTI crude oil"},
@@ -645,6 +667,88 @@ function renderCats(){
   $("#pbCats").innerHTML = cats.map(c => `<button class="chip ${c===pbCat?"on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("");
   $("#pbCats").querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => { pbCat = b.dataset.c; renderCats(); renderPB(); }));
 }
+
+
+/* ================= Treasury yields (official daily curve) ================= */
+const YIELD_SOURCES = [
+  "https://raw.githubusercontent.com/joshlange99-blip/Market-Dash/main/yields.json",
+  "yields.json"
+];
+const SHOW = ["1M","3M","6M","1Y","2Y","5Y","10Y","20Y","30Y"];
+const KEY = ["2Y","10Y"];
+const YRS = {"1M":1/12,"2M":2/12,"3M":.25,"4M":1/3,"6M":.5,"1Y":1,"2Y":2,"3Y":3,"5Y":5,"7Y":7,"10Y":10,"20Y":20,"30Y":30};
+async function loadYields(){
+  for (const u of YIELD_SOURCES){
+    try{
+      const r = await fetch(u + (u.startsWith("http") ? "?t=" + Math.floor(Date.now()/300000) : ""), {cache:"no-store"});
+      if (!r.ok) continue;
+      const j = await r.json();
+      if (j && j.series && j.series.length){ renderYields(j); return; }
+    }catch(e){}
+  }
+  $("#yBody").innerHTML = `<div class="empty">Yields will appear after the first daily update runs.</div>`;
+}
+function backFrom(series, days){
+  const last = new Date(series[series.length-1].date+"T12:00:00Z");
+  const target = new Date(last.getTime() - days*86400000).toISOString().slice(0,10);
+  for (let i = series.length-1; i >= 0; i--) if (series[i].date <= target) return series[i];
+  return null;
+}
+const bp = (a,b) => (a==null||b==null) ? null : Math.round((a-b)*100);
+function chg(v){
+  if (v==null) return `<span class="flat">—</span>`;
+  const c = v>0?"pos":v<0?"neg":"flat";
+  return `<span class="${c}">${v>0?"+":""}${v}</span>`;
+}
+const fmtDate = d => new Date(d+"T12:00:00Z").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",timeZone:"UTC"});
+function renderYields(j){
+  const S = j.series, L = S[S.length-1], P = S[S.length-2], W = backFrom(S,7), M = backFrom(S,30), Y = backFrom(S,365);
+  $("#yAsOf").textContent = "YTM % · close " + fmtDate(L.date);
+  const rows = SHOW.filter(t => L[t]!=null).map(t => `<tr class="${KEY.includes(t)?"key":""}">
+      <td>${t.replace("M"," mo").replace("Y"," yr")}</td><td class="ytm num">${L[t].toFixed(2)}</td>
+      <td class="num">${chg(bp(L[t],P&&P[t]))}</td><td class="num">${chg(bp(L[t],W&&W[t]))}</td>
+      <td class="num">${chg(bp(L[t],M&&M[t]))}</td><td class="num">${chg(bp(L[t],Y&&Y[t]))}</td></tr>`).join("");
+  const s210 = bp(L["10Y"],L["2Y"]), s310 = bp(L["10Y"],L["3M"]);
+  const s210p = P ? bp(P["10Y"],P["2Y"]) : null, s310p = P ? bp(P["10Y"],P["3M"]) : null;
+  const sp = (lbl,v,pv) => v==null ? "" : `<div><div class="sl">${lbl}</div><div class="sv num ${v<0?"neg":""}">${v>0?"+":""}${v} bp</div>
+      <div class="ss ${v<0?"neg":"flat"}">${v<0?"Inverted":"Normal (upward)"}${pv!=null?` · ${v-pv>=0?"+":""}${v-pv} bp d/d`:""}</div></div>`;
+  $("#yBody").innerHTML = `<table class="yt"><thead><tr><th>Maturity</th><th>YTM</th><th>1D</th><th>1W</th><th>1M</th><th>1Y</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+    <div class="note" style="margin-top:6px">Changes in basis points (1 bp = 0.01%).</div>
+    <div class="spreads">${sp("2s10s spread",s210,s210p)}${sp("3m10s spread",s310,s310p)}</div>
+    <div class="curve">${curveSVG([[Y,"#64748b","3 4"],[M,"#8fa0bf","5 4"],[L,"#38bdf8",""]])}
+      <div class="legend"><span><i style="background:#38bdf8"></i>Latest</span><span><i style="background:#8fa0bf"></i>1 month ago</span>${Y?`<span><i style="background:#64748b"></i>1 year ago</span>`:""}</div></div>
+    <p class="note">Official U.S. Treasury par yield curve (constant-maturity yields — the YTM of a Treasury priced at par at each maturity), posted after each day's close. Typically within a few bp of quoted on-the-run yields. Intraday:
+      <a href="https://www.cnbc.com/quotes/US2Y" target="_blank" rel="noopener">2-yr</a> · <a href="https://www.cnbc.com/quotes/US10Y" target="_blank" rel="noopener">10-yr</a> on CNBC.</p>`;
+  const st = (t) => L[t]==null ? "" : `<span><span class="yl">${t}</span><span class="yv num">${L[t].toFixed(2)}%</span> ${chg(bp(L[t],P&&P[t]))}</span>`;
+  $("#ystrip").innerHTML = ["3M","2Y","10Y","30Y"].map(st).join("") +
+    (s210!=null?`<span><span class="yl">2s10s</span><span class="yv num ${s210<0?"neg":""}">${s210>0?"+":""}${s210}bp</span></span>`:"") +
+    `<span class="asof">Treasury close ${fmtDate(L.date)}</span>`;
+}
+function curveSVG(sets){
+  const W = 400, H = 210, pl = 34, pr = 10, pt = 10, pb = 26;
+  const ten = ["1M","3M","6M","1Y","2Y","3Y","5Y","7Y","10Y","20Y","30Y"];
+  const xs = t => pl + (Math.log(YRS[t]*12)/Math.log(360))*(W-pl-pr);
+  const vals = sets.filter(s=>s[0]).flatMap(([d]) => ten.map(t=>d[t]).filter(v=>v!=null));
+  let lo = Math.floor(Math.min(...vals)*4)/4 - .25, hi = Math.ceil(Math.max(...vals)*4)/4 + .25;
+  const ys = v => pt + (hi - v)/(hi - lo)*(H-pt-pb);
+  let g = "";
+  const step = (hi-lo) > 2 ? .5 : .25;
+  for (let v = Math.ceil(lo/step)*step; v <= hi; v += step){
+    g += `<line x1="${pl}" x2="${W-pr}" y1="${ys(v)}" y2="${ys(v)}" stroke="#22304d" stroke-width="1"/>
+      <text x="${pl-6}" y="${ys(v)+4}" fill="#64748b" font-size="11" text-anchor="end">${v.toFixed(step<.5?2:1)}</text>`;
+  }
+  ["1M","3M","6M","1Y","2Y","5Y","10Y","30Y"].forEach(t => g += `<text x="${xs(t)}" y="${H-8}" fill="#64748b" font-size="11" text-anchor="middle">${t}</text>`);
+  sets.forEach(([d,col,dash]) => {
+    if (!d) return;
+    const pts = ten.filter(t => d[t]!=null).map(t => `${xs(t).toFixed(1)},${ys(d[t]).toFixed(1)}`);
+    g += `<polyline points="${pts.join(" ")}" fill="none" stroke="${col}" stroke-width="${dash?1.6:2.6}" stroke-dasharray="${dash}" stroke-linejoin="round" stroke-linecap="round"/>`;
+    if (!dash) ten.filter(t => d[t]!=null).forEach(t => g += `<circle cx="${xs(t)}" cy="${ys(d[t])}" r="3" fill="${col}"/>`);
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Treasury yield curve">${g}</svg>`;
+}
+$("#ystrip").addEventListener("click", () => { go("markets"); setTimeout(() => $("#yields").scrollIntoView({behavior:"smooth", block:"start"}), 80); });
+loadYields(); setInterval(loadYields, 30*60*1000);
 
 /* ================= init ================= */
 $("#decode").innerHTML = PB.map(x => `<button class="chip" data-id="${x.id}">${esc(x.short)}</button>`).join("");
