@@ -190,6 +190,12 @@ nav.tabs svg{width:22px;height:22px}
       <div class="card">
         <div class="chead"><h2>Markets</h2><span class="sub">Tap a row to chart it</span></div>
         <div class="w w-overview" data-widget="overview"><div class="wload">Loading quotes…</div></div>
+        <div class="cbody" style="border-top:1px solid var(--line);font-size:13px;color:var(--muted)">
+          <b style="color:var(--text)">Reading the board:</b> Index quotes trade almost 24 hours, so before 8:30 CT they show where futures are pointing.
+          The Rates tab shows Treasury <i>prices</i>, which move opposite to yields — <span style="color:var(--up)">price up = yields down</span>.
+          Exact yields: <a href="https://www.cnbc.com/quotes/US10Y" target="_blank" rel="noopener">10-yr</a> ·
+          <a href="https://www.cnbc.com/quotes/US2Y" target="_blank" rel="noopener">2-yr</a>
+        </div>
       </div>
       <div class="card">
         <div class="chead"><h2>S&amp;P 500 heatmap</h2><span class="sub">By sector · size = market cap</span></div>
@@ -282,8 +288,8 @@ const TAPE = [
   {proName:"FOREXCOM:SPXUSD", title:"S&P 500"},
   {proName:"FOREXCOM:NSXUSD", title:"Nasdaq 100"},
   {proName:"FOREXCOM:DJI",    title:"Dow 30"},
-  {proName:"TVC:US10Y",       title:"10-yr"},
-  {proName:"TVC:US02Y",       title:"2-yr"},
+  {proName:"OANDA:USB10YUSD", title:"10-yr note (price)"},
+  {proName:"OANDA:USB02YUSD", title:"2-yr note (price)"},
   {proName:"TVC:VIX",         title:"VIX"},
   {proName:"TVC:DXY",         title:"Dollar (DXY)"},
   {proName:"TVC:USOIL",       title:"WTI crude"},
@@ -295,24 +301,21 @@ const OVERVIEW_TABS = [
     {s:"FOREXCOM:SPXUSD", d:"S&P 500"},
     {s:"FOREXCOM:NSXUSD", d:"Nasdaq 100"},
     {s:"FOREXCOM:DJI",    d:"Dow 30"},
-    {s:"FOREXCOM:US2000", d:"Russell 2000"},
-    {s:"CME_MINI:ES1!",   d:"S&P 500 futures"},
-    {s:"CME_MINI:NQ1!",   d:"Nasdaq 100 futures"}
+    {s:"FOREXCOM:US2000", d:"Russell 2000"}
   ]},
   {title:"Rates", symbols:[
-    {s:"TVC:US02Y", d:"2-yr Treasury yield"},
-    {s:"TVC:US05Y", d:"5-yr Treasury yield"},
-    {s:"TVC:US10Y", d:"10-yr Treasury yield"},
-    {s:"TVC:US30Y", d:"30-yr Treasury yield"},
-    {s:"TVC:US03MY", d:"3-mo T-bill yield"}
+    {s:"OANDA:USB02YUSD", d:"2-yr T-note (price)"},
+    {s:"OANDA:USB05YUSD", d:"5-yr T-note (price)"},
+    {s:"OANDA:USB10YUSD", d:"10-yr T-note (price)"},
+    {s:"OANDA:USB30YUSD", d:"30-yr T-bond (price)"}
   ]},
   {title:"Commodities", symbols:[
     {s:"TVC:USOIL",     d:"WTI crude oil"},
     {s:"TVC:UKOIL",     d:"Brent crude oil"},
     {s:"OANDA:XAUUSD",  d:"Gold"},
     {s:"OANDA:XAGUSD",  d:"Silver"},
-    {s:"NYMEX:NG1!",    d:"Natural gas"},
-    {s:"COMEX:HG1!",    d:"Copper"}
+    {s:"OANDA:NATGASUSD", d:"Natural gas"},
+    {s:"OANDA:XCUUSD",   d:"Copper"}
   ]},
   {title:"Vol & FX", symbols:[
     {s:"TVC:VIX",    d:"VIX (fear gauge)"},
