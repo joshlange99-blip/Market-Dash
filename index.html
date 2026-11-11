@@ -318,9 +318,9 @@ const TAPE = [
   {proName:"FOREXCOM:SPXUSD", title:"S&P 500"},
   {proName:"FOREXCOM:NSXUSD", title:"Nasdaq 100"},
   {proName:"FOREXCOM:DJI",    title:"Dow 30"},
-  {proName:"TVC:VIX",         title:"VIX"},
-  {proName:"TVC:DXY",         title:"Dollar (DXY)"},
-  {proName:"TVC:USOIL",       title:"WTI crude"},
+  {proName:"CAPITALCOM:VIX",  title:"VIX"},
+  {proName:"CAPITALCOM:DXY",  title:"Dollar (DXY)"},
+  {proName:"OANDA:WTICOUSD",  title:"WTI crude"},
   {proName:"OANDA:XAUUSD",    title:"Gold"},
   {proName:"BITSTAMP:BTCUSD", title:"Bitcoin"}
 ];
@@ -332,16 +332,16 @@ const OVERVIEW_TABS = [
     {s:"FOREXCOM:US2000", d:"Russell 2000"}
   ]},
   {title:"Commodities", symbols:[
-    {s:"TVC:USOIL",     d:"WTI crude oil"},
-    {s:"TVC:UKOIL",     d:"Brent crude oil"},
+    {s:"OANDA:WTICOUSD", d:"WTI crude oil"},
+    {s:"OANDA:BCOUSD",   d:"Brent crude oil"},
     {s:"OANDA:XAUUSD",  d:"Gold"},
     {s:"OANDA:XAGUSD",  d:"Silver"},
     {s:"OANDA:NATGASUSD", d:"Natural gas"},
     {s:"OANDA:XCUUSD",   d:"Copper"}
   ]},
   {title:"Vol & FX", symbols:[
-    {s:"TVC:VIX",    d:"VIX (fear gauge)"},
-    {s:"TVC:DXY",    d:"US Dollar Index"},
+    {s:"CAPITALCOM:VIX", d:"VIX (fear gauge, futures-based)"},
+    {s:"CAPITALCOM:DXY", d:"US Dollar Index"},
     {s:"FX:EURUSD",  d:"EUR / USD"},
     {s:"FX:USDJPY",  d:"USD / JPY"},
     {s:"FX:GBPUSD",  d:"GBP / USD"}
