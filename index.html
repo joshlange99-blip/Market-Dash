@@ -60,7 +60,8 @@ main{max-width:1600px;margin:0 auto;padding:14px 12px calc(84px + var(--safe-b))
 .cbody{padding:14px}
 .w{position:relative}
 .w .tradingview-widget-container{height:100%;width:100%}
-.w-overview{height:560px}
+.w-overview{height:400px}
+.w-chart{height:480px}
 .w-heat{height:440px}
 .w-cal{height:640px}
 .w-news{height:720px}
@@ -169,7 +170,8 @@ nav.tabs svg{width:22px;height:22px}
 @media (max-width:520px){
   .hdate,.clocks .loc{display:none}
   .brand span.full{display:none}
-  .w-overview{height:520px}
+  .w-overview{height:390px}
+  .w-chart{height:440px}
 }
 @media (min-width:700px){
   .sc{grid-template-columns:1fr 1fr}
@@ -215,11 +217,15 @@ nav.tabs svg{width:22px;height:22px}
     <!-- MARKETS -->
     <section class="view dashpart" id="v-markets">
       <div class="card">
-        <div class="chead"><h2>Markets</h2><span class="sub">Tap a row to chart it</span></div>
+        <div class="chead"><h2>Markets</h2><span class="sub">Live quotes</span></div>
         <div class="w w-overview" data-widget="overview"><div class="wload">Loading quotes…</div></div>
         <div class="cbody" style="border-top:1px solid var(--line);font-size:13px;color:var(--muted)">
           <b style="color:var(--text)">Reading the board:</b> Index quotes trade almost 24 hours, so before 8:30 CT they show where futures are pointing.
         </div>
+      </div>
+      <div class="card">
+        <div class="chead"><h2>Chart</h2><span class="sub">Tap a name to switch · touch the chart for exact prices</span></div>
+        <div class="w w-chart" data-widget="chart"><div class="wload">Loading chart…</div></div>
       </div>
       <div class="card" id="yields">
         <div class="chead"><h2>Treasury yields</h2><span class="sub" id="yAsOf">Yield to maturity · %</span></div>
@@ -350,6 +356,13 @@ const OVERVIEW_TABS = [
     {s:"BITSTAMP:BTCUSD", d:"Bitcoin"},
     {s:"BITSTAMP:ETHUSD", d:"Ethereum"}
   ]}
+];
+
+/* Chart tabs: [label, "SYMBOL|default range"] */
+const CHART_SYMBOLS = [
+  ["S&P 500","FOREXCOM:SPXUSD|1D"], ["Nasdaq 100","FOREXCOM:NSXUSD|1D"], ["Dow 30","FOREXCOM:DJI|1D"],
+  ["Russell 2000","FOREXCOM:US2000|1D"], ["WTI crude","OANDA:WTICOUSD|1D"], ["Gold","OANDA:XAUUSD|1D"],
+  ["VIX","CAPITALCOM:VIX|1D"], ["Dollar","CAPITALCOM:DXY|1D"], ["Bitcoin","BITSTAMP:BTCUSD|1D"]
 ];
 
 /* FOMC decision days (2nd day of meeting), 2:00 PM ET. SEP = projections + dot plot. Source: federalreserve.gov */
@@ -576,7 +589,15 @@ function renderRhythm(){
 /* ================= TradingView widgets (lazy) ================= */
 const WIDGETS = {
   tape: ["ticker-tape", {symbols:TAPE, showSymbolLogo:true, isTransparent:true, displayMode:"adaptive", colorTheme:THEME, locale:"en"}],
-  overview: ["market-overview", {colorTheme:THEME, dateRange:"1D", showChart:true, locale:"en", width:"100%", height:"100%",
+  chart: ["symbol-overview", {symbols:CHART_SYMBOLS, chartOnly:false, width:"100%", height:"100%", autosize:true,
+    locale:"en", colorTheme:THEME, isTransparent:true, showVolume:false, showMA:false, hideDateRanges:false,
+    hideMarketStatus:false, hideSymbolLogo:false, scalePosition:"right", scaleMode:"Normal",
+    fontFamily:"-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontSize:"11", noTimeScale:false,
+    valuesTracking:"1", changeMode:"price-and-percent", chartType:"area", lineWidth:2, lineType:0,
+    lineColor:"rgba(56,189,248,1)", topColor:"rgba(56,189,248,0.25)", bottomColor:"rgba(56,189,248,0)",
+    gridLineColor:"rgba(34,48,77,0.6)", dateRanges:["1d|1","1w|15","1m|30","3m|60","12m|1D","60m|1W"],
+    dateFormat:"MMM dd", timeHoursFormat:"12-hours"}],
+  overview: ["market-overview", {colorTheme:THEME, dateRange:"1D", showChart:false, locale:"en", width:"100%", height:"100%",
     largeChartUrl:"", isTransparent:true, showSymbolLogo:true, showFloatingTooltip:true,
     plotLineColorGrowing:"rgba(56,189,248,1)", plotLineColorFalling:"rgba(244,63,94,1)",
     gridLineColor:"rgba(34,48,77,0.6)", scaleFontColor:"rgba(143,160,191,1)",
