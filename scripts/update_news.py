@@ -21,13 +21,14 @@ FEEDS = [
     ("WSJ", "Economy", "https://feeds.content.dowjones.io/public/rss/socialeconomyfeed"),
     ("Bloomberg", "Markets", "https://feeds.bloomberg.com/markets/news.rss"),
     ("Bloomberg", "Economy", "https://feeds.bloomberg.com/economics/news.rss"),
-    ("Yahoo Finance", "Markets", "https://finance.yahoo.com/news/rssindex"),
+    ("Yahoo Finance", "Markets", "https://finance.yahoo.com/rss/topstories"),
     ("Financial Times", "Markets", "https://www.ft.com/markets?format=rss"),
     ("Reuters", "Markets", "https://news.google.com/rss/search?q=site:reuters.com+markets+when:1d&hl=en-US&gl=US&ceid=US:en"),
     ("Reuters", "Economy", "https://news.google.com/rss/search?q=site:reuters.com+economy+when:1d&hl=en-US&gl=US&ceid=US:en"),
     ("Federal Reserve", "Fed & Data", "https://www.federalreserve.gov/feeds/press_all.xml"),
     ("Federal Reserve", "Fed & Data", "https://www.federalreserve.gov/feeds/speeches.xml"),
-    ("BLS", "Fed & Data", "https://www.bls.gov/feed/bls_latest.rss"),
+    ("BEA", "Fed & Data", "https://apps.bea.gov/rss/rss.xml"),
+    ("AP", "Economy", "https://news.google.com/rss/search?q=site:apnews.com+business+when:1d&hl=en-US&gl=US&ceid=US:en"),
 ]
 
 KEEP_HOURS = 48
@@ -96,16 +97,19 @@ def parse(raw, source, topic):
         when = parse_date(child_text(el, "pubDate", "published", "updated", "date"))
         summary = clean(child_text(el, "description", "summary", "content"), 240)
         src = source
-        if "news.google.com" in link or source == "Reuters":
+        if "news.google.com" in link:
             # Google News titles end with " - Publisher"; keep only Reuters stories.
             m = re.search(r"\s+-\s+([^-]+)$", title)
             if m:
-                if "reuters" not in m.group(1).lower():
+                want = "associated press" if source == "AP" else source.lower()
+                if want not in m.group(1).lower() and not (source == "AP" and m.group(1).strip().lower() == "ap news"):
                     continue
                 title = title[: m.start()].strip()
             summary = ""
         if summary and summary.lower().startswith(title.lower()[:40]):
             summary = ""
+        if re.match(r"^(NEWSLETTER|Podcast|VIDEO|WATCH|LIVE BLOG)\b", title, re.I):
+            continue
         if not title or not link.startswith("http"):
             continue
         items.append({"t": title, "u": link, "s": src, "c": topic, "d": summary,

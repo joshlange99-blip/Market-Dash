@@ -67,7 +67,7 @@ main{max-width:1600px;margin:0 auto;padding:14px 12px calc(84px + var(--safe-b))
 .chartpick .chip{white-space:nowrap;flex:none}
 .w-heat{height:440px}
 .w-cal{height:640px}
-.w-news{height:720px}
+.w-news{height:560px}
 .wload{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:13px;pointer-events:none}
 .tradingview-widget-copyright{font-size:11px;color:var(--dim);padding:4px 10px}
 .tradingview-widget-copyright a{color:var(--dim)}
@@ -117,6 +117,24 @@ table.yt tr.key td:first-child{box-shadow:inset 3px 0 0 var(--accent);padding-le
 .chip:hover{border-color:var(--accent)}
 .chip.on{background:var(--accent);color:#04121c;border-color:var(--accent)}
 .note{font-size:13px;color:var(--muted);margin:10px 0 0}
+
+/* Headlines */
+.ntools{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.nrow{display:flex;gap:8px}
+.nrow .search{flex:1;min-width:0}
+.nsel{background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--text);font:inherit;font-size:14px;padding:0 10px;max-width:42%}
+.nlist{max-height:none}
+.nitem{display:block;padding:12px 14px;border-bottom:1px solid var(--line);color:var(--text)}
+.nitem:hover{background:var(--panel2);text-decoration:none}
+.nitem .nm{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim);margin-bottom:3px}
+.nitem .src{font-weight:700;color:var(--muted)}
+.nitem .mm{font-size:10.5px;font-weight:800;letter-spacing:.04em;color:var(--warn);background:rgba(245,158,11,.13);padding:1px 6px;border-radius:5px}
+.nitem .nt{font-weight:650;font-size:15px;line-height:1.35}
+.nitem .nd{font-size:13.5px;color:var(--muted);margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nitem.fresh .nt::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:7px;vertical-align:2px}
+.nmore{padding:12px;text-align:center}
+.nmore .chip[hidden]{display:none}
+@media (min-width:1100px){ .nlist{max-height:820px;overflow-y:auto} }
 
 /* Links */
 .links{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
@@ -278,8 +296,20 @@ nav.tabs svg{width:22px;height:22px}
 
     <!-- NEWS -->
     <section class="view dashpart" id="v-news">
+      <div class="card" id="headlines">
+        <div class="chead"><h2>Headlines</h2><span class="sub" id="newsMeta">Loading…</span></div>
+        <div class="ntools">
+          <div class="nrow">
+            <input class="search" id="newsSearch" type="search" placeholder="Search headlines…" autocomplete="off">
+            <select id="newsSource" class="nsel" aria-label="Source"><option value="">All sources</option></select>
+          </div>
+          <div class="chips" id="newsTopics"></div>
+        </div>
+        <div id="newsList" class="nlist"><div class="empty">Loading headlines…</div></div>
+        <div class="nmore"><button class="chip" id="newsMore" hidden>Show more</button></div>
+      </div>
       <div class="card">
-        <div class="chead"><h2>Market news</h2><span class="sub">Live headlines</span></div>
+        <div class="chead"><h2>TradingView news</h2><span class="sub">Live wire</span></div>
         <div class="w w-news" data-widget="news"><div class="wload">Loading headlines…</div></div>
       </div>
       <div class="card">
@@ -787,8 +817,64 @@ function renderChartPick(){
 renderChartPick();
 
 
+
+/* ================= Headlines (collected every 15 min by a GitHub Action) ================= */
+const NEWS_URL = "https://raw.githubusercontent.com/joshlange99-blip/Market-Dash/data/news.json";
+const TOPICS = ["All","Market-moving","Markets","Economy","Fed & Data"];
+const MOVERS = /\b(fed|fomc|powell|warsh|rate cut|rate hike|rates?|inflation|cpi|pce|ppi|jobs|payrolls?|unemployment|jobless|gdp|recession|treasur(y|ies)|yields?|tariffs?|earnings|guidance|opec|oil|crude|selloff|sell-off|rally|record high|plunge|surge|s&p 500|nasdaq|dow)\b/i;
+const DATA = /\b(fed|fomc|powell|warsh|federal reserve|cpi|pce|ppi|inflation|payrolls?|jobs report|jobless claims|unemployment rate|gdp|retail sales|ism|consumer sentiment|treasury auction|jolts)\b/i;
+let NEWS = [], newsTopic = "All", newsLimit = 40, newsUpdated = null;
+function ago(ts){
+  if (!ts) return "";
+  const m = Math.round((Date.now() - new Date(ts)) / 60000);
+  if (m < 1) return "just now"; if (m < 60) return m + "m ago";
+  const h = Math.floor(m/60); if (h < 24) return h + "h ago";
+  return new Date(ts).toLocaleDateString([], {month:"short", day:"numeric"});
+}
+async function loadNews(){
+  try{
+    const r = await fetch(NEWS_URL + "?t=" + Math.floor(Date.now()/120000), {cache:"no-store"});
+    if (!r.ok) throw new Error(r.status);
+    const j = await r.json();
+    NEWS = j.items || []; newsUpdated = j.updated_utc;
+    const srcs = [...new Set(NEWS.map(x => x.s))].sort();
+    const sel = $("#newsSource"), cur = sel.value;
+    sel.innerHTML = `<option value="">All sources (${srcs.length})</option>` + srcs.map(s => `<option ${s===cur?"selected":""}>${esc(s)}</option>`).join("");
+    renderNews();
+  }catch(e){
+    if (!NEWS.length) $("#newsList").innerHTML = `<div class="empty">Headlines will appear after the first update runs.</div>`;
+  }
+}
+function renderNews(){
+  const q = $("#newsSearch").value.trim().toLowerCase(), src = $("#newsSource").value;
+  const list = NEWS.filter(x =>
+    (!src || x.s === src) &&
+    (newsTopic === "All" || (newsTopic === "Market-moving" ? MOVERS.test(x.t)
+      : newsTopic === "Fed & Data" ? (x.c === "Fed & Data" || DATA.test(x.t)) : x.c === newsTopic)) &&
+    (!q || (x.t + " " + (x.d||"")).toLowerCase().includes(q)));
+  $("#newsMeta").textContent = newsUpdated ? `Updated ${ago(newsUpdated)} · ${NEWS.length} stories` : "";
+  $("#newsList").innerHTML = list.length ? list.slice(0, newsLimit).map(x => {
+    const fresh = x.ts && (Date.now() - new Date(x.ts)) < 60*60000;
+    return `<a class="nitem ${fresh?"fresh":""}" href="${esc(x.u)}" target="_blank" rel="noopener">
+      <div class="nm"><span class="src">${esc(x.s)}</span><span>${ago(x.ts)}</span>${MOVERS.test(x.t)?'<span class="mm">MARKET-MOVING</span>':""}</div>
+      <div class="nt">${esc(x.t)}</div>${x.d?`<div class="nd">${esc(x.d)}</div>`:""}</a>`;
+  }).join("") : `<div class="empty">No headlines match.</div>`;
+  $("#newsMore").hidden = list.length <= newsLimit;
+}
+$("#newsTopics").innerHTML = TOPICS.map(t => `<button class="chip ${t===newsTopic?"on":""}" data-t="${esc(t)}">${esc(t)}</button>`).join("");
+$("#newsTopics").querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => {
+  newsTopic = b.dataset.t; newsLimit = 40;
+  $("#newsTopics").querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c === b)); renderNews();
+}));
+$("#newsSearch").addEventListener("input", () => { newsLimit = 40; renderNews(); });
+$("#newsSource").addEventListener("change", () => { newsLimit = 40; renderNews(); });
+$("#newsMore").addEventListener("click", () => { newsLimit += 40; renderNews(); });
+loadNews();
+setInterval(() => { if (!document.hidden) loadNews(); }, 5*60*1000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) loadNews(); });
+
 /* ================= auto-update: reload when a newer version is published ================= */
-const BUILD = "202611120108";
+const BUILD = "202611121357";
 async function checkForUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
