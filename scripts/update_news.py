@@ -21,7 +21,6 @@ FEEDS = [
     ("WSJ", "Economy", "https://feeds.content.dowjones.io/public/rss/socialeconomyfeed"),
     ("Bloomberg", "Markets", "https://feeds.bloomberg.com/markets/news.rss"),
     ("Bloomberg", "Economy", "https://feeds.bloomberg.com/economics/news.rss"),
-    ("Yahoo Finance", "Markets", "https://feeds.finance.yahoo.com/rss/2.0/headline?s=%5EGSPC,%5EDJI,%5EIXIC&region=US&lang=en-US"),
     ("Financial Times", "Markets", "https://www.ft.com/markets?format=rss"),
     ("Reuters", "Markets", "https://news.google.com/rss/search?q=site:reuters.com+markets+when:1d&hl=en-US&gl=US&ceid=US:en"),
     ("Reuters", "Economy", "https://news.google.com/rss/search?q=site:reuters.com+economy+when:1d&hl=en-US&gl=US&ceid=US:en"),
