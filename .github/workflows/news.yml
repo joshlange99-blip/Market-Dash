@@ -1,0 +1,39 @@
+name: Update headlines
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/news.yml"
+      - "scripts/update_news.py"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: news
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch headlines
+        run: python3 scripts/update_news.py
+      # Publish news.json to a separate "data" branch as a single commit,
+      # so frequent updates never clutter the main branch history.
+      - name: Publish to data branch
+        run: |
+          mkdir -p "$RUNNER_TEMP/out" && cp news.json "$RUNNER_TEMP/out/"
+          cd "$RUNNER_TEMP/out"
+          git init -q -b data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add news.json
+          git commit -q -m "Headlines $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" data
