@@ -786,6 +786,21 @@ function renderChartPick(){
 }
 renderChartPick();
 
+
+/* ================= auto-update: reload when a newer version is published ================= */
+const BUILD = "202611120108";
+async function checkForUpdate(){
+  try{
+    const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
+    if (!r.ok) return;
+    const m = (await r.text()).match(/const BUILD = "(\d+)"/);
+    if (m && m[1] !== BUILD) location.replace(location.pathname + "?v=" + m[1] + location.hash);
+  }catch(e){}
+}
+checkForUpdate();
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkForUpdate(); });
+setInterval(checkForUpdate, 15*60*1000);
+
 /* ================= init ================= */
 $("#decode").innerHTML = PB.map(x => `<button class="chip" data-id="${x.id}">${esc(x.short)}</button>`).join("");
 $("#decode").querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => openPB(b.dataset.id)));
