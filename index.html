@@ -61,7 +61,10 @@ main{max-width:1600px;margin:0 auto;padding:14px 12px calc(84px + var(--safe-b))
 .w{position:relative}
 .w .tradingview-widget-container{height:100%;width:100%}
 .w-overview{height:400px}
-.w-chart{height:480px}
+.w-chart{height:520px}
+.chartpick{display:flex;gap:7px;overflow-x:auto;padding:10px 14px;border-bottom:1px solid var(--line);scrollbar-width:none}
+.chartpick::-webkit-scrollbar{display:none}
+.chartpick .chip{white-space:nowrap;flex:none}
 .w-heat{height:440px}
 .w-cal{height:640px}
 .w-news{height:720px}
@@ -171,7 +174,7 @@ nav.tabs svg{width:22px;height:22px}
   .hdate,.clocks .loc{display:none}
   .brand span.full{display:none}
   .w-overview{height:390px}
-  .w-chart{height:440px}
+  .w-chart{height:460px}
 }
 @media (min-width:700px){
   .sc{grid-template-columns:1fr 1fr}
@@ -224,8 +227,9 @@ nav.tabs svg{width:22px;height:22px}
         </div>
       </div>
       <div class="card">
-        <div class="chead"><h2>Chart</h2><span class="sub">Tap a name to switch · touch the chart for exact prices</span></div>
-        <div class="w w-chart" data-widget="chart"><div class="wload">Loading chart…</div></div>
+        <div class="chead"><h2>Chart</h2><span class="sub">Touch the chart for exact prices</span></div>
+        <div class="chartpick" id="chartPick"></div>
+        <div class="w w-chart" data-widget="chart" id="chartBox"><div class="wload">Loading chart…</div></div>
       </div>
       <div class="card" id="yields">
         <div class="chead"><h2>Treasury yields</h2><span class="sub" id="yAsOf">Yield to maturity · %</span></div>
@@ -358,12 +362,14 @@ const OVERVIEW_TABS = [
   ]}
 ];
 
-/* Chart tabs: [label, "SYMBOL|default range"] */
+/* Chart picker: [label, symbol] */
 const CHART_SYMBOLS = [
-  ["S&P 500","FOREXCOM:SPXUSD|1D"], ["Nasdaq 100","FOREXCOM:NSXUSD|1D"], ["Dow 30","FOREXCOM:DJI|1D"],
-  ["Russell 2000","FOREXCOM:US2000|1D"], ["WTI crude","OANDA:WTICOUSD|1D"], ["Gold","OANDA:XAUUSD|1D"],
-  ["VIX","CAPITALCOM:VIX|1D"], ["Dollar","CAPITALCOM:DXY|1D"], ["Bitcoin","BITSTAMP:BTCUSD|1D"]
+  ["S&P 500","FOREXCOM:SPXUSD"], ["Nasdaq 100","FOREXCOM:NSXUSD"], ["Dow 30","FOREXCOM:DJI"],
+  ["Russell 2000","FOREXCOM:US2000"], ["WTI crude","OANDA:WTICOUSD"], ["Gold","OANDA:XAUUSD"],
+  ["VIX","CAPITALCOM:VIX"], ["Dollar","CAPITALCOM:DXY"], ["Bitcoin","BITSTAMP:BTCUSD"]
 ];
+let chartSym = CHART_SYMBOLS[0][1];
+try { const v = localStorage.getItem("mp_chart"); if (CHART_SYMBOLS.some(c => c[1] === v)) chartSym = v; } catch(e){}
 
 /* FOMC decision days (2nd day of meeting), 2:00 PM ET. SEP = projections + dot plot. Source: federalreserve.gov */
 const FOMC = [
@@ -589,14 +595,11 @@ function renderRhythm(){
 /* ================= TradingView widgets (lazy) ================= */
 const WIDGETS = {
   tape: ["ticker-tape", {symbols:TAPE, showSymbolLogo:true, isTransparent:true, displayMode:"adaptive", colorTheme:THEME, locale:"en"}],
-  chart: ["symbol-overview", {symbols:CHART_SYMBOLS, chartOnly:false, width:"100%", height:"100%", autosize:true,
-    locale:"en", colorTheme:THEME, isTransparent:true, showVolume:false, showMA:false, hideDateRanges:false,
-    hideMarketStatus:false, hideSymbolLogo:false, scalePosition:"right", scaleMode:"Normal",
-    fontFamily:"-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", fontSize:"11", noTimeScale:false,
-    valuesTracking:"1", changeMode:"price-and-percent", chartType:"area", lineWidth:2, lineType:0,
-    lineColor:"rgba(56,189,248,1)", topColor:"rgba(56,189,248,0.25)", bottomColor:"rgba(56,189,248,0)",
-    gridLineColor:"rgba(34,48,77,0.6)", dateRanges:["1d|1","1w|15","1m|30","3m|60","12m|1D","60m|1W"],
-    dateFormat:"MMM dd", timeHoursFormat:"12-hours"}],
+  chart: () => ["advanced-chart", {autosize:true, symbol:chartSym, interval:"5", range:"1D", timezone:LOCAL_TZ,
+    theme:THEME, style:"3", locale:"en", backgroundColor:"rgba(17,26,46,1)", gridColor:"rgba(34,48,77,0.6)",
+    hide_top_toolbar:false, hide_side_toolbar:true, hide_legend:false, hide_volume:true, withdateranges:true,
+    allow_symbol_change:true, save_image:false, calendar:false, details:false, hotlist:false,
+    support_host:"https://www.tradingview.com"}],
   overview: ["market-overview", {colorTheme:THEME, dateRange:"1D", showChart:false, locale:"en", width:"100%", height:"100%",
     largeChartUrl:"", isTransparent:true, showSymbolLogo:true, showFloatingTooltip:true,
     plotLineColorGrowing:"rgba(56,189,248,1)", plotLineColorFalling:"rgba(244,63,94,1)",
@@ -615,7 +618,7 @@ const WIDGETS = {
 const mounted = new Set();
 function mount(el, key){
   if (mounted.has(el)) return; mounted.add(el);
-  const [name, cfg] = WIDGETS[key];
+  const [name, cfg] = typeof WIDGETS[key] === "function" ? WIDGETS[key]() : WIDGETS[key];
   const box = document.createElement("div"); box.className = "tradingview-widget-container";
   const inner = document.createElement("div"); inner.className = "tradingview-widget-container__widget";
   inner.style.height = key==="tape" ? "auto" : "100%";
@@ -770,6 +773,18 @@ function curveSVG(sets){
 }
 $("#ystrip").addEventListener("click", () => { go("markets"); setTimeout(() => $("#yields").scrollIntoView({behavior:"smooth", block:"start"}), 80); });
 loadYields(); setInterval(loadYields, 30*60*1000);
+
+/* ================= chart picker ================= */
+function renderChartPick(){
+  $("#chartPick").innerHTML = CHART_SYMBOLS.map(([l,s]) => `<button class="chip ${s===chartSym?"on":""}" data-s="${esc(s)}">${esc(l)}</button>`).join("");
+  $("#chartPick").querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => {
+    if (b.dataset.s === chartSym) return;
+    chartSym = b.dataset.s; try { localStorage.setItem("mp_chart", chartSym); } catch(e){}
+    renderChartPick();
+    const el = $("#chartBox"); mounted.delete(el); el.innerHTML = `<div class="wload">Loading chart…</div>`; mount(el, "chart");
+  }));
+}
+renderChartPick();
 
 /* ================= init ================= */
 $("#decode").innerHTML = PB.map(x => `<button class="chip" data-id="${x.id}">${esc(x.short)}</button>`).join("");
