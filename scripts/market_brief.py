@@ -572,15 +572,33 @@ def clean_ai(o, n_news):
     return out if out["title"] or out["summary"] else None
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *a, **k):
+        return None
+
+
+_POST = urllib.request.build_opener(_NoRedirect)
+
+
 def post_json(url, body, headers, timeout=90):
-    req = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST",
-                                 headers={"content-type": "application/json", "User-Agent": "market-dash-brief/1.0", **headers})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        raw = r.read().decode("utf-8", "replace")
-    try:
-        return json.loads(raw)
-    except ValueError:
-        raise ValueError(f"non-JSON reply from {url.split('/')[2]}: {raw[:200]!r}")
+    """POST JSON, re-sending the POST (not a GET) if the server redirects."""
+    data = json.dumps(body).encode()
+    for _ in range(4):
+        req = urllib.request.Request(url, data=data, method="POST",
+                                     headers={"Content-Type": "application/json", "User-Agent": "market-dash-brief/1.0", **headers})
+        try:
+            with _POST.open(req, timeout=timeout) as r:
+                raw, status = r.read().decode("utf-8", "replace"), r.status
+        except urllib.error.HTTPError as e:
+            if e.code in (301, 302, 303, 307, 308) and e.headers.get("Location"):
+                url = urllib.parse.urljoin(url, e.headers["Location"])
+                continue
+            raise
+        try:
+            return json.loads(raw)
+        except ValueError:
+            raise ValueError(f"non-JSON reply (HTTP {status}) from {url}: {raw[:200]!r}")
+    raise ValueError("too many redirects")
 
 
 def write_with_ai(b):
