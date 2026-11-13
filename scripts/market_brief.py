@@ -656,14 +656,27 @@ def write_with_ai(b):
     key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
     if key:
         model = os.environ.get("CLAUDE_MODEL", "").strip() or "claude-sonnet-5-5"
-        j = post_json("https://api.anthropic.com/v1/messages",
-                      {"model": model, "max_tokens": 1600, "system": SYS, "messages": [{"role": "user", "content": prompt}]},
-                      {"x-api-key": key, "anthropic-version": "2023-06-01"})
-        txt = "".join(c.get("text", "") for c in j.get("content", []) if c.get("type") == "text")
-        o = clean_ai(parse_ai_json(txt), n_news, known)
-        if not o:
-            raise ValueError("Claude reply could not be read")
-        return {**o, "by": "Claude (Anthropic)"}
+        try:
+            j = post_json("https://api.anthropic.com/v1/messages",
+                          {"model": model, "max_tokens": 4000, "system": SYS, "messages": [{"role": "user", "content": prompt}]},
+                          {"x-api-key": key, "anthropic-version": "2023-06-01"})
+            txt = "".join(c.get("text", "") for c in j.get("content", []) if c.get("type") == "text")
+            o = clean_ai(parse_ai_json(txt), n_news, known)
+            if not o:
+                raise ValueError(f"Claude reply could not be read (stop={j.get('stop_reason')}, {len(txt)} chars): "
+                                 f"{txt[:120]!r} ... {txt[-160:]!r}")
+            name = "Claude Sonnet" if "sonnet" in model else "Claude Haiku" if "haiku" in model else "Claude"
+            return {**o, "by": f"{name} (Anthropic)"}
+        except Exception as e:  # noqa: BLE001  -- fall through to the free option if it's configured
+            body = ""
+            if hasattr(e, "read"):
+                try:
+                    body = e.read().decode()[:300]
+                except Exception:  # noqa: BLE001
+                    pass
+            log(f"  Claude failed: {type(e).__name__}: {str(e)[:300]} {body}".rstrip())
+            if not (os.environ.get("CF_ACCOUNT_ID", "").strip() and os.environ.get("CF_API_TOKEN", "").strip()):
+                raise
     acct, cft = os.environ.get("CF_ACCOUNT_ID", "").strip(), os.environ.get("CF_API_TOKEN", "").strip()
     if acct and cft:  # Cloudflare Workers AI: free daily allowance (10,000 neurons/day)
         model = os.environ.get("CF_AI_MODEL", "").strip() or "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
