@@ -669,17 +669,22 @@ def write_with_ai(b):
         model = os.environ.get("CF_AI_MODEL", "").strip() or "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
         j = post_json(f"https://api.cloudflare.com/client/v4/accounts/{acct}/ai/run/{model}",
                       {"messages": [{"role": "system", "content": SYS}, {"role": "user", "content": prompt}],
-                       "max_tokens": 1600, "temperature": 0.3}, {"Authorization": f"Bearer {cft}"})
+                       "max_tokens": 3000, "temperature": 0.3}, {"Authorization": f"Bearer {cft}"})
         if not j.get("success", True):
             raise ValueError("Workers AI error: " + json.dumps(j.get("errors"))[:200])
         res = j.get("result") or {}
+        finish = ""
         if isinstance(res, dict) and res.get("choices"):  # OpenAI-style reply shape
-            reply = ((res["choices"][0] or {}).get("message") or {}).get("content", "")
+            ch = res["choices"][0] or {}
+            finish = ch.get("finish_reason") or ""
+            reply = (ch.get("message") or {}).get("content") or ""
         else:
             reply = res.get("response", res) if isinstance(res, dict) else res
         o = clean_ai(parse_ai_json(reply), n_news, known)
         if not o:
-            raise ValueError("Workers AI reply could not be read: " + str(res)[:200])
+            tail = reply if isinstance(reply, str) else json.dumps(reply)
+            raise ValueError(f"Workers AI reply could not be read (finish={finish or '?'}, {len(tail)} chars): "
+                             f"{tail[:120]!r} ... {tail[-160:]!r}")
         return {**o, "by": "Llama 3.3 (Cloudflare Workers AI)" if "llama-3.3" in model else f"{model} (Cloudflare Workers AI)"}
     return None
 
