@@ -1,6 +1,6 @@
 name: Market brief
 
-# Builds the pre-market brief (~8:15-8:30 AM ET) and the after-close brief
+# Builds (with Claude Sonnet when ANTHROPIC_API_KEY is set) the pre-market brief (~8:15-8:30 AM ET) and the after-close brief
 # (~4:50-5:05 PM ET; ~1:50 PM on early-close days). The script works out
 # whether a brief is due in Eastern time, skips NYSE holidays, and never
 # publishes the same brief twice, so extra triggers are harmless.
