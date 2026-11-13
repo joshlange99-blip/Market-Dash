@@ -616,16 +616,30 @@ def write_with_ai(b):
         return {**o, "by": "Claude (Anthropic)"}
     tok = os.environ.get("GITHUB_TOKEN", "").strip()
     if tok:
-        model = os.environ.get("GH_MODEL", "").strip() or "openai/gpt-4.1-mini"
-        j = post_json("https://models.github.ai/inference/chat/completions",
-                      {"model": model, "max_tokens": 1600, "temperature": 0.3,
-                       "messages": [{"role": "system", "content": SYS}, {"role": "user", "content": prompt}]},
-                      {"Authorization": f"Bearer {tok}", "Accept": "application/json"})
-        txt = ((j.get("choices") or [{}])[0].get("message") or {}).get("content", "")
-        o = clean_ai(parse_ai_json(txt), n_news)
-        if not o:
-            raise ValueError("GitHub Models reply could not be read: " + str(txt)[:200])
-        return {**o, "by": f"{model.split('/')[-1]} via GitHub Models"}
+        hdr = {"Authorization": f"Bearer {tok}", "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
+        wanted = [m for m in [os.environ.get("GH_MODEL", "").strip(), "openai/gpt-4.1-mini", "openai/gpt-4o-mini", "openai/gpt-4.1"] if m]
+        try:  # use the catalog to skip models that aren't offered
+            cat = json.loads(get("https://models.github.ai/catalog/models", hdr, 15))
+            ids = {m.get("id") for m in cat if isinstance(m, dict)}
+            log(f"  GitHub Models catalog: {len(ids)} models")
+            wanted = [m for m in wanted if m in ids] or wanted
+        except Exception as e:  # noqa: BLE001
+            log(f"  GitHub Models catalog failed: {type(e).__name__}: {str(e)[:120]}")
+        last = None
+        for model in dict.fromkeys(wanted):
+            try:
+                j = post_json("https://models.github.ai/inference/chat/completions",
+                              {"model": model, "max_tokens": 1600, "temperature": 0.3, "stream": False,
+                               "messages": [{"role": "system", "content": SYS}, {"role": "user", "content": prompt}]}, hdr)
+                txt = ((j.get("choices") or [{}])[0].get("message") or {}).get("content", "")
+                o = clean_ai(parse_ai_json(txt), n_news)
+                if not o:
+                    raise ValueError("reply could not be read: " + str(txt)[:200])
+                return {**o, "by": f"{model.split('/')[-1]} via GitHub Models"}
+            except Exception as e:  # noqa: BLE001
+                last = e
+                log(f"  GitHub Models {model} failed: {type(e).__name__}: {str(e)[:160]}")
+        raise last or ValueError("GitHub Models unavailable")
     return None
 
 
