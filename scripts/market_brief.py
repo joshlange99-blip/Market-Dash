@@ -16,7 +16,7 @@ Usage:
 
 Environment (all optional):
   ANTHROPIC_API_KEY  -> write-up by Claude (model CLAUDE_MODEL, default claude-haiku-5-5)
-  GITHUB_TOKEN       -> otherwise, free write-up via GitHub Models (needs `models: read`)
+  CF_ACCOUNT_ID + CF_API_TOKEN -> otherwise, free write-up via Cloudflare Workers AI
   FINNHUB_KEY        -> earnings with actual vs estimate (else Nasdaq's public calendar)
   NTFY_TOPIC         -> phone notification via ntfy.sh when a brief is published
   SITE_URL           -> link opened from the notification
@@ -38,7 +38,7 @@ NEWS_JSON = "https://raw.githubusercontent.com/joshlange99-blip/Market-Dash/data
 MKT = {
     "fut": [("ES=F", "S&P 500 futures"), ("NQ=F", "Nasdaq 100 futures"), ("YM=F", "Dow futures"), ("RTY=F", "Russell 2000 futures")],
     "us": [("^GSPC", "S&P 500"), ("^IXIC", "Nasdaq"), ("^DJI", "Dow"), ("^RUT", "Russell 2000"), ("^VIX", "VIX (fear gauge)")],
-    "macro": [("^TNX", "10-yr Treasury yield"), ("2YY=F", "2-yr Treasury yield"), ("DX-Y.NYB", "US dollar index"),
+    "macro": [("^TNX", "10-yr Treasury yield"), ("UST2Y", "2-yr Treasury yield"), ("DX-Y.NYB", "US dollar index"),
               ("CL=F", "Oil (WTI)"), ("GC=F", "Gold"), ("BTC-USD", "Bitcoin")],
     "global": [("^N225", "Nikkei 225 (Japan)"), ("^HSI", "Hang Seng (Hong Kong)"), ("^STOXX50E", "Euro Stoxx 50"),
                ("^FTSE", "FTSE 100 (UK)"), ("^GDAXI", "DAX (Germany)")],
@@ -46,7 +46,7 @@ MKT = {
                 ("XLV", "Health care"), ("XLI", "Industrials"), ("XLE", "Energy"), ("XLP", "Consumer staples"),
                 ("XLU", "Utilities"), ("XLRE", "Real estate"), ("XLB", "Materials")],
 }
-YIELDS = {"^TNX", "2YY=F"}
+YIELDS = {"^TNX", "UST2Y"}
 FEEDS = [
     ("CNBC", "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114"),
     ("CNBC Markets", "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258"),
@@ -245,7 +245,24 @@ def yahoo_quote(sym, prepost=False):
     raise last or ValueError("no data")
 
 
+def treasury_2y(name):
+    """Official U.S. Treasury 2-yr par yield (latest close) from the dashboard's yields.json.
+    Yahoo has no live 2-yr yield index, and its 2-yr yield future trades too thinly."""
+    with open(os.path.join(ROOT, "yields.json")) as f:
+        S = [r for r in json.load(f)["series"] if r.get("2Y") is not None]
+    last, prev = S[-1], S[-2]
+    t = int(et_dt(dt.date.fromisoformat(last["date"]), 16 * 60).timestamp())
+    return {"s": "UST2Y", "n": name, "p": last["2Y"], "pc": prev["2Y"], "t": t, "sp": [r["2Y"] for r in S[-32:]],
+            "y": 1, "src": "U.S. Treasury daily close"}
+
+
 def get_quote(sym, name):
+    if sym == "UST2Y":
+        try:
+            return treasury_2y(name)
+        except Exception as e:  # noqa: BLE001
+            log(f"  Treasury 2-yr failed: {type(e).__name__}")
+            return {"s": sym, "n": name, "err": True}
     try:
         q = yahoo_quote(sym)
         q["n"] = name or q["n"]
@@ -254,6 +271,8 @@ def get_quote(sym, name):
         return {"s": sym, "n": name or sym, "err": True}
     if sym in YIELDS:
         q["y"] = 1
+    if q.get("t") and time.time() - q["t"] > 3.5 * 86400:
+        q["old"] = 1  # last trade is days old; flagged in the prompt and on the page
     return q
 
 
@@ -310,6 +329,8 @@ def get_headlines(since_ts):
         j = get_json(NEWS_JSON, timeout=12)
         extra = []
         for it in j.get("items", []):
+            if it.get("s") == "AP":  # AP's feed comes via a broad Google News search and drifts off-topic
+                continue
             ts = it.get("ts")
             t = int(dt.datetime.fromisoformat(ts.replace("Z", "+00:00")).timestamp()) if ts else 0
             extra.append({"h": it["t"][:220], "u": it["u"], "t": t, "s": it["s"], "d": (it.get("d") or "")[:240]})
@@ -482,8 +503,12 @@ def fmt_q(q):
     else:
         c = pct(q)
         s = f"{q['n']}: {q['p']}" + (f" ({'+' if c >= 0 else ''}{c:.2f}% vs prior close {q['pc']})" if c is not None else "")
-    if q.get("t"):
+    if q.get("src"):
+        s += f" [{q['src']}, {dt.datetime.fromtimestamp(q['t'], ET).strftime('%a %b %-d')}]"
+    elif q.get("t"):
         s += f" [as of {dt.datetime.fromtimestamp(q['t'], ET).strftime('%a %-I:%M %p')} ET]"
+    if q.get("old"):
+        s += " (STALE: last update several days ago; do not describe as today's move)"
     return s
 
 
@@ -614,32 +639,19 @@ def write_with_ai(b):
         if not o:
             raise ValueError("Claude reply could not be read")
         return {**o, "by": "Claude (Anthropic)"}
-    tok = os.environ.get("GITHUB_TOKEN", "").strip()
-    if tok:
-        hdr = {"Authorization": f"Bearer {tok}", "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
-        wanted = [m for m in [os.environ.get("GH_MODEL", "").strip(), "openai/gpt-4.1-mini", "openai/gpt-4o-mini", "openai/gpt-4.1"] if m]
-        try:  # use the catalog to skip models that aren't offered
-            cat = json.loads(get("https://models.github.ai/catalog/models", hdr, 15))
-            ids = {m.get("id") for m in cat if isinstance(m, dict)}
-            log(f"  GitHub Models catalog: {len(ids)} models")
-            wanted = [m for m in wanted if m in ids] or wanted
-        except Exception as e:  # noqa: BLE001
-            log(f"  GitHub Models catalog failed: {type(e).__name__}: {str(e)[:120]}")
-        last = None
-        for model in dict.fromkeys(wanted):
-            try:
-                j = post_json("https://models.github.ai/inference/chat/completions",
-                              {"model": model, "max_tokens": 1600, "temperature": 0.3, "stream": False,
-                               "messages": [{"role": "system", "content": SYS}, {"role": "user", "content": prompt}]}, hdr)
-                txt = ((j.get("choices") or [{}])[0].get("message") or {}).get("content", "")
-                o = clean_ai(parse_ai_json(txt), n_news)
-                if not o:
-                    raise ValueError("reply could not be read: " + str(txt)[:200])
-                return {**o, "by": f"{model.split('/')[-1]} via GitHub Models"}
-            except Exception as e:  # noqa: BLE001
-                last = e
-                log(f"  GitHub Models {model} failed: {type(e).__name__}: {str(e)[:160]}")
-        raise last or ValueError("GitHub Models unavailable")
+    acct, cft = os.environ.get("CF_ACCOUNT_ID", "").strip(), os.environ.get("CF_API_TOKEN", "").strip()
+    if acct and cft:  # Cloudflare Workers AI: free daily allowance (10,000 neurons/day)
+        model = os.environ.get("CF_AI_MODEL", "").strip() or "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+        j = post_json(f"https://api.cloudflare.com/client/v4/accounts/{acct}/ai/run/{model}",
+                      {"messages": [{"role": "system", "content": SYS}, {"role": "user", "content": prompt}],
+                       "max_tokens": 1600, "temperature": 0.3}, {"Authorization": f"Bearer {cft}"})
+        if not j.get("success", True):
+            raise ValueError("Workers AI error: " + json.dumps(j.get("errors"))[:200])
+        res = j.get("result") or {}
+        o = clean_ai(parse_ai_json(res.get("response", res)), n_news)
+        if not o:
+            raise ValueError("Workers AI reply could not be read: " + str(res)[:200])
+        return {**o, "by": "Llama 3.3 (Cloudflare Workers AI)" if "llama-3.3" in model else f"{model} (Cloudflare Workers AI)"}
     return None
 
 
