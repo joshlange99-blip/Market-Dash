@@ -5,7 +5,7 @@ name: Market brief
 # whether a brief is due in Eastern time, skips NYSE holidays, and never
 # publishes the same brief twice, so extra triggers are harmless.
 on:
-  # Preferred: an outside timer (e.g. cron-job.org) sends a "tick" every 15 min.
+  # An outside timer (cron-job.org) sends a "tick" every 15 min. Set up Nov 12, 2026.
   repository_dispatch:
     types: [tick]
   # Backup: GitHub's own scheduler (UTC; can start late or skip under load).
