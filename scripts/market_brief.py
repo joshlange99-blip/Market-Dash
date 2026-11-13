@@ -556,14 +556,16 @@ Rules:
 - Percent moves you mention must match the data given. Round to one decimal. Yield moves are in basis points (bp).
 - Explain WHY markets moved when the headlines support it; say "no single clear driver" if they don't.
 - Neutral tone. No investment advice, no predictions, no hype.
-- Cite headlines by their [number] in "src".
+- Cite headlines by their [number] in "src". Every driver must cite at least one headline that directly supports it.
+- Do not speculate. Never mention Fed rate hikes, cuts or decisions unless a headline says so.
 Reply with JSON only, no other text, in exactly this shape:
-{"title": "one punchy line under 90 characters capturing the session",
+{"title": "one specific headline under 90 characters naming what moved and why, e.g. 'Stocks slip as Nvidia CEO exit weighs on tech; oil jumps'",
  "summary": "2-3 sentences: the big picture",
  "drivers": [{"h": "3-6 word lead", "t": "1-2 sentences", "src": [1,2]}],
- "earnings": [{"sym": "TICKER", "t": "one sentence on the result and the stock's reaction, only from the data/headlines"}],
- "watch": ["short item to watch next"]}
-Give 3-6 drivers, earnings only for companies in the data, and 0-4 watch items (only things named in the scheduled events or headlines, e.g. data releases, Fed speakers, upcoming earnings)."""
+ "earnings": [{"sym": "TICKER", "t": "one sentence"}],
+ "watch": [{"t": "short item to watch next", "src": [3]}]}
+Give 3-6 drivers. Add an earnings note ONLY when a headline adds context beyond the numbers (cite it in the sentence's wording); the numbers are already shown in a table, so do not just restate beat/miss.
+Give 0-4 watch items. Each must be either a scheduled economic release or earnings report listed above (use "src": []) or something a numbered headline names as upcoming (cite it)."""
 
 
 def parse_ai_json(txt):
@@ -579,7 +581,8 @@ def parse_ai_json(txt):
         return None
 
 
-def clean_ai(o, n_news):
+def clean_ai(o, n_news, known=()):
+    """known: lower-case names of scheduled releases and tickers a watch item may refer to without a citation."""
     if not isinstance(o, dict):
         return None
 
@@ -592,8 +595,19 @@ def clean_ai(o, n_news):
                                 for d in (o.get("drivers") or [])[:7] if isinstance(d, dict)) if d["t"]],
         "earnings": [e for e in ({"sym": st(e.get("sym"), 10).upper(), "t": st(e.get("t"), 300)}
                                  for e in (o.get("earnings") or [])[:12] if isinstance(e, dict)) if e["sym"] and e["t"]],
-        "watch": [w for w in (st(w, 200) for w in (o.get("watch") or [])[:5]) if w],
+        "watch": [],
     }
+    out["drivers"] = [d for d in out["drivers"] if d["src"]]  # a driver must be backed by a headline
+    for w in (o.get("watch") or [])[:6]:
+        if isinstance(w, str):
+            w = {"t": w, "src": []}
+        if not isinstance(w, dict) or not st(w.get("t"), 200):
+            continue
+        txt = st(w.get("t"), 200)
+        src = [int(n) for n in (w.get("src") or []) if str(n).isdigit() and 1 <= int(n) <= n_news]
+        if src or (known and any(k in txt.lower() for k in known)):
+            out["watch"].append(txt)
+    out["watch"] = out["watch"][:4]
     return out if out["title"] or out["summary"] else None
 
 
@@ -628,6 +642,9 @@ def post_json(url, body, headers, timeout=90):
 
 def write_with_ai(b):
     prompt, n_news = brief_prompt(b), len(b["data"].get("news") or [])
+    up = b["data"].get("up") or {}
+    known = tuple({(e.get("title") or "").lower() for e in up.get("econ") or [] if e.get("title")}
+                  | {(e.get("sym") or "").lower() for e in up.get("earn") or [] if e.get("sym")})
     key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
     if key:
         model = os.environ.get("CLAUDE_MODEL", "").strip() or "claude-haiku-5-5"
@@ -635,7 +652,7 @@ def write_with_ai(b):
                       {"model": model, "max_tokens": 1600, "system": SYS, "messages": [{"role": "user", "content": prompt}]},
                       {"x-api-key": key, "anthropic-version": "2023-06-01"})
         txt = "".join(c.get("text", "") for c in j.get("content", []) if c.get("type") == "text")
-        o = clean_ai(parse_ai_json(txt), n_news)
+        o = clean_ai(parse_ai_json(txt), n_news, known)
         if not o:
             raise ValueError("Claude reply could not be read")
         return {**o, "by": "Claude (Anthropic)"}
@@ -648,7 +665,7 @@ def write_with_ai(b):
         if not j.get("success", True):
             raise ValueError("Workers AI error: " + json.dumps(j.get("errors"))[:200])
         res = j.get("result") or {}
-        o = clean_ai(parse_ai_json(res.get("response", res)), n_news)
+        o = clean_ai(parse_ai_json(res.get("response", res)), n_news, known)
         if not o:
             raise ValueError("Workers AI reply could not be read: " + str(res)[:200])
         return {**o, "by": "Llama 3.3 (Cloudflare Workers AI)" if "llama-3.3" in model else f"{model} (Cloudflare Workers AI)"}
