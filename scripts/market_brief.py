@@ -587,7 +587,12 @@ def clean_ai(o, n_news, known=()):
         return None
 
     def st(v, n):
-        return v.strip()[:n] if isinstance(v, str) else ""
+        if not isinstance(v, str):
+            return ""
+        # citations are shown as tags on the page, so drop "as seen in headline [4]" asides and stray [n]
+        v = re.sub(r",?\s*\(?\s*(as|which was|this was)?\s*(seen|mentioned|reported|noted|shown|cited)\s+in\s+(the\s+)?(headlines?|earnings table|data|table)[^.;)]*\)?", "", v, flags=re.I)
+        v = re.sub(r"\s*\[\d+(?:\s*,\s*\d+)*\]", "", v)
+        return re.sub(r"\s+([.,;])", r"\1", v).strip()[:n]
     out = {
         "title": st(o.get("title"), 140), "summary": st(o.get("summary"), 900),
         "drivers": [d for d in ({"h": st(d.get("h"), 80), "t": st(d.get("t"), 500),
@@ -598,6 +603,9 @@ def clean_ai(o, n_news, known=()):
         "watch": [],
     }
     out["drivers"] = [d for d in out["drivers"] if d["src"]]  # a driver must be backed by a headline
+    # earnings notes that only restate the table add nothing
+    raw = {str(x.get("sym", "")).upper(): str(x.get("t", "")) for x in (o.get("earnings") or []) if isinstance(x, dict)}
+    out["earnings"] = [e for e in out["earnings"] if not re.search(r"earnings table|reported in the (data|table)", raw.get(e["sym"], ""), re.I)]
     for w in (o.get("watch") or [])[:6]:
         if isinstance(w, str):
             w = {"t": w, "src": []}
