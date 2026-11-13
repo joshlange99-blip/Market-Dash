@@ -673,7 +673,11 @@ def write_with_ai(b):
         if not j.get("success", True):
             raise ValueError("Workers AI error: " + json.dumps(j.get("errors"))[:200])
         res = j.get("result") or {}
-        o = clean_ai(parse_ai_json(res.get("response", res)), n_news, known)
+        if isinstance(res, dict) and res.get("choices"):  # OpenAI-style reply shape
+            reply = ((res["choices"][0] or {}).get("message") or {}).get("content", "")
+        else:
+            reply = res.get("response", res) if isinstance(res, dict) else res
+        o = clean_ai(parse_ai_json(reply), n_news, known)
         if not o:
             raise ValueError("Workers AI reply could not be read: " + str(res)[:200])
         return {**o, "by": "Llama 3.3 (Cloudflare Workers AI)" if "llama-3.3" in model else f"{model} (Cloudflare Workers AI)"}
@@ -718,7 +722,12 @@ def build(day, kind):
     D["up"] = upcoming(day, kind)
     log(f"  coming up: {len(D['up']['econ'])} events, {len(D['up']['earn'])} earnings")
     try:
-        t = write_with_ai(b)
+        try:
+            t = write_with_ai(b)
+        except Exception as e:  # noqa: BLE001  -- one retry: AI replies are occasionally malformed
+            log(f"  AI write-up attempt 1 failed ({type(e).__name__}); retrying")
+            time.sleep(3)
+            t = write_with_ai(b)
     except Exception as e:  # noqa: BLE001
         body = ""
         if hasattr(e, "read"):
