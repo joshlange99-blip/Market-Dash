@@ -1,6 +1,9 @@
 name: Update headlines
 
 on:
+  # Outside timer (e.g. cron-job.org) can send a "tick" for on-time runs.
+  repository_dispatch:
+    types: [tick]
   schedule:
     - cron: "*/15 * * * *"
   workflow_dispatch:

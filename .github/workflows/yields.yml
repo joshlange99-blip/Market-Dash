@@ -1,6 +1,9 @@
 name: Update Treasury yields
 
 on:
+  # Outside timer (e.g. cron-job.org) can send a "tick" for on-time runs.
+  repository_dispatch:
+    types: [tick]
   schedule:
     # Treasury posts the day's curve in the late afternoon ET; check a few times, plus a morning catch-up.
     - cron: "35 21 * * 1-5"
