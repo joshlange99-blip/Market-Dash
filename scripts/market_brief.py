@@ -22,7 +22,7 @@ Environment (all optional):
   SITE_URL           -> link opened from the notification
 """
 import argparse, base64, datetime as dt, email.utils, html, json, os, re, sys, time
-import urllib.parse, urllib.request
+import urllib.error, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from zoneinfo import ZoneInfo
 
@@ -173,6 +173,22 @@ def et_dt(d, minutes):
 
 
 # ---------------------------------------------------------------- http
+try:  # Yahoo rejects plain server requests; curl_cffi presents a real browser's TLS fingerprint.
+    from curl_cffi import requests as creq
+    _CSESS = creq.Session(impersonate="chrome")
+except Exception:  # noqa: BLE001
+    _CSESS = None
+
+
+def get_browser(url, timeout=15):
+    if _CSESS is None:
+        return get(url, timeout=timeout)
+    r = _CSESS.get(url, timeout=timeout, headers={"Accept": "application/json,text/plain,*/*"})
+    if r.status_code != 200:
+        raise urllib.error.HTTPError(url, r.status_code, f"HTTP {r.status_code}", None, None)
+    return r.text
+
+
 def get(url, headers=None, timeout=15, raw=False):
     h = {"User-Agent": UA, "Accept": "application/json,text/plain,*/*"}
     h.update(headers or {})
@@ -204,7 +220,7 @@ def yahoo_quote(sym, prepost=False):
         try:
             u = (f"https://{host}.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(sym)}"
                  f"?range=1d&interval={'5m' if prepost else '15m'}&includePrePost={'true' if prepost else 'false'}")
-            j = get_json(u, timeout=12)
+            j = json.loads(get_browser(u, timeout=12))
             res = (j.get("chart") or {}).get("result") or []
             if not res or not res[0].get("meta"):
                 raise ValueError("no data")
@@ -558,9 +574,13 @@ def clean_ai(o, n_news):
 
 def post_json(url, body, headers, timeout=90):
     req = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST",
-                                 headers={"content-type": "application/json", **headers})
+                                 headers={"content-type": "application/json", "User-Agent": "market-dash-brief/1.0", **headers})
     with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read().decode())
+        raw = r.read().decode("utf-8", "replace")
+    try:
+        return json.loads(raw)
+    except ValueError:
+        raise ValueError(f"non-JSON reply from {url.split('/')[2]}: {raw[:200]!r}")
 
 
 def write_with_ai(b):
@@ -582,11 +602,11 @@ def write_with_ai(b):
         j = post_json("https://models.github.ai/inference/chat/completions",
                       {"model": model, "max_tokens": 1600, "temperature": 0.3,
                        "messages": [{"role": "system", "content": SYS}, {"role": "user", "content": prompt}]},
-                      {"Authorization": f"Bearer {tok}", "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"})
+                      {"Authorization": f"Bearer {tok}", "Accept": "application/json"})
         txt = ((j.get("choices") or [{}])[0].get("message") or {}).get("content", "")
         o = clean_ai(parse_ai_json(txt), n_news)
         if not o:
-            raise ValueError("GitHub Models reply could not be read")
+            raise ValueError("GitHub Models reply could not be read: " + str(txt)[:200])
         return {**o, "by": f"{model.split('/')[-1]} via GitHub Models"}
     return None
 
@@ -645,6 +665,7 @@ def build(day, kind):
     b["created"] = int(time.time())
     b["secs"] = round(time.time() - t0, 1)
     b["quotesOk"] = ok
+    b["log"] = LOG[-40:]
     return b
 
 

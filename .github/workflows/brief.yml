@@ -43,6 +43,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - name: Install browser-grade HTTP client
+        run: pip install --quiet curl_cffi
       - name: Build brief
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -53,7 +55,8 @@ jobs:
           SITE_URL: https://joshlange99-blip.github.io/Market-Dash/
         run: |
           MODE="${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event_name == 'push' && 'latest' || 'scheduled') }}"
-          FORCE="${{ github.event_name == 'workflow_dispatch' && inputs.force && '--force' || '' }}"
+          # A code change rebuilds the latest brief so changes can be checked right away.
+          FORCE="${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.force)) && '--force' || '' }}"
           python3 scripts/market_brief.py --mode "$MODE" $FORCE
       - name: Publish
         run: |
