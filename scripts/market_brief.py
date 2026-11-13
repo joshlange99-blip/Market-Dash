@@ -15,7 +15,7 @@ Usage:
   python3 scripts/market_brief.py --mode am|pm [--force]
 
 Environment (all optional):
-  ANTHROPIC_API_KEY  -> write-up by Claude (model CLAUDE_MODEL, default claude-haiku-5-5)
+  ANTHROPIC_API_KEY  -> write-up by Claude (model CLAUDE_MODEL, default claude-sonnet-5-5)
   CF_ACCOUNT_ID + CF_API_TOKEN -> otherwise, free write-up via Cloudflare Workers AI
   FINNHUB_KEY        -> earnings with actual vs estimate (else Nasdaq's public calendar)
   NTFY_TOPIC         -> phone notification via ntfy.sh when a brief is published
@@ -655,7 +655,7 @@ def write_with_ai(b):
                   | {(e.get("sym") or "").lower() for e in up.get("earn") or [] if e.get("sym")})
     key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
     if key:
-        model = os.environ.get("CLAUDE_MODEL", "").strip() or "claude-haiku-5-5"
+        model = os.environ.get("CLAUDE_MODEL", "").strip() or "claude-sonnet-5-5"
         j = post_json("https://api.anthropic.com/v1/messages",
                       {"model": model, "max_tokens": 1600, "system": SYS, "messages": [{"role": "user", "content": prompt}]},
                       {"x-api-key": key, "anthropic-version": "2023-06-01"})

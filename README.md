@@ -21,7 +21,7 @@ A personal market dashboard: live quotes (TradingView widgets), Treasury yields,
 
 | Secret | Needed? | What it does |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | Recommended | Claude writes the summary (default model `claude-haiku-5-5`; override with a repository *variable* `CLAUDE_MODEL`). |
+| `ANTHROPIC_API_KEY` | Recommended | Claude writes the summary (default model `claude-sonnet-5-5`, about 2 cents a brief; override with a repository *variable* `CLAUDE_MODEL`). |
 | `CF_ACCOUNT_ID` + `CF_API_TOKEN` | Free alternative | Cloudflare Workers AI writes the summary within its free daily allowance (token needs the "Workers AI" permission). Used only when no Claude key is set. |
 | `FINNHUB_KEY` | Recommended | Earnings with *actual* EPS/revenue vs. estimates (free key). Without it, Nasdaq's public calendar gives estimates only. |
 | `NTFY_TOPIC` | Optional | Phone notification through the free ntfy app when each brief is published. |
