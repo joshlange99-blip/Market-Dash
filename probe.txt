@@ -1,0 +1,279 @@
+model url found: True
+status 200 len 67473 type application/json;charset=utf-8
+.cacheBuster: str 13 '1794820132086'
+.chartOfTheWeekImage.imageAltText: str 17 'chart_of_the_week'
+.chartOfTheWeekImage.imagePath: str 118
+.chartOfTheWeekImage.imageLastModified: int 1794817996683
+.crossPromotion1.ariaLabel: str 29 'View the Guide to the Markets'
+.crossPromotion1.description: str 159
+.crossPromotion1.destinationPath: str 74
+.crossPromotion1.imageAltText: str 46 'PROD-0622-1076816-AM-WMR-75_Line_Chart_322x143'
+.crossPromotion1.imageLastModified: int 1719941958809
+.crossPromotion1.imagePath: str 159
+.crossPromotion1.title: str 20 'Guide to the Markets'
+.cta.ariaLabel: str 21 'View and download PDF'
+.cta.destination: str 114 PDF ''
+.cta.hide: bool False
+.cta.label: str 21 'View and download PDF'
+.dataCenterHeader: str 18 'Weekly Data Center'
+.dateFormat: str 11 'mmm_dd_yyyy'
+.i18nKeysJson: str 2942
+.jsonDataPath: NoneType None
+.pageActions.whatsapp: bool False
+.pageActions.twitter: bool True
+.pageActions.showEmail: bool True
+.pageActions.subscriptionType: str 3 'WMR'
+.pageActions.line: bool False
+.pageActions.facebook: bool True
+.pageActions.showDownload: bool True
+.pageActions.showPrint: bool True
+.pageActions.linkedin: bool True
+.pageActions.showSubscribe: bool True
+.pageActions.showShare: bool True
+.pageTitle: str 19 'Weekly Market Recap'
+.showOpenByDefault: bool False
+.subscriptionModal.description: str 117
+.subscriptionModal.disclaimer: str 141
+.subscriptionModal.subscriptionEmployeeException: str 77
+.subscriptionModal.successDescription: str 58 'Please allow 24-48 hours for this request to be processed.'
+.subscriptionModal.successTitle: str 32 'You have successfully subscribed'
+.targetBlank: bool True
+.thoughtOfTheWeekHeader: str 19 'Thought of the Week'
+.thoughtOfTheWeekTakeAway: str 136
+.versionSelector: str 2 'us'
+.wmrJson: str 56019
+.wmrJsonPath: str 105
+==== wmrJson
+.WMI.Disclosures.Disclosure2: str 4784
+.WMI.Disclosures.Disclosure1: str 5577
+.WMI.Disclosures.thoughtOfTheWeekDisclosure: str 90
+.WMI.Disclosures.chartOfTheWeekDisclosure: str 351
+.WMI.SectorReturnCharts.YTD[] list len 12
+.WMI.SectorReturnCharts.YTD[0].Value: str 4 '48.2'
+.WMI.SectorReturnCharts.YTD[0].Row: str 6 'Energy'
+.WMI.SectorReturnCharts.YTD[1].Value: str 4 '23.6'
+.WMI.SectorReturnCharts.YTD[1].Row: str 11 'Health Care'
+.WMI.SectorReturnCharts.YTD[2].Value: str 4 '22.6'
+.WMI.SectorReturnCharts.YTD[2].Row: str 16 'Consumer\\Staples'
+.WMI.SectorReturnCharts.1Week[] list len 12
+.WMI.SectorReturnCharts.1Week[0].Value: str 3 '5.1'
+.WMI.SectorReturnCharts.1Week[0].Row: str 6 'Energy'
+.WMI.SectorReturnCharts.1Week[1].Value: str 3 '3.7'
+.WMI.SectorReturnCharts.1Week[1].Row: str 11 'Industrials'
+.WMI.SectorReturnCharts.1Week[2].Value: str 3 '3.5'
+.WMI.SectorReturnCharts.1Week[2].Row: str 11 'Comm. Serv.'
+.WMI.WeekAhead: str 34 'Retail Sales\nIndustrial Production'
+.WMI.Commodities[] list len 24
+.WMI.Commodities[0].Col: str 8 '11/13/26'
+.WMI.Commodities[0].Value: str 5 '92.30'
+.WMI.Commodities[0].Row: str 9 'Oil (WTI)'
+.WMI.Commodities[1].Col: str 8 '12/31/25'
+.WMI.Commodities[1].Value: str 5 '57.26'
+.WMI.Commodities[1].Row: str 9 'Oil (WTI)'
+.WMI.Commodities[2].Col: str 8 '11/13/25'
+.WMI.Commodities[2].Value: str 5 '59.54'
+.WMI.Commodities[2].Row: str 9 'Oil (WTI)'
+.WMI.Fixed Income[] list len 24
+.WMI.Fixed Income[0].Col: str 5 'Yield'
+.WMI.Fixed Income[0].Value: str 4 '5.49'
+.WMI.Fixed Income[0].Row: str 14 'U.S. Aggregate'
+.WMI.Fixed Income[1].Col: str 6 '1 week'
+.WMI.Fixed Income[1].Value: str 5 '-1.50'
+.WMI.Fixed Income[1].Row: str 14 'U.S. Aggregate'
+.WMI.Fixed Income[2].Col: str 3 'QTD'
+.WMI.Fixed Income[2].Value: str 4 '1.31'
+.WMI.Fixed Income[2].Row: str 14 'U.S. Aggregate'
+.WMI.Currencies[] list len 9
+.WMI.Currencies[0].Col: str 8 '11/13/26'
+.WMI.Currencies[0].Value: str 4 '1.10'
+.WMI.Currencies[0].Row: str 13 '$ per &#8364;'
+.WMI.Currencies[1].Col: str 8 '12/31/25'
+.WMI.Currencies[1].Value: str 4 '1.17'
+.WMI.Currencies[1].Row: str 13 '$ per &#8364;'
+.WMI.Currencies[2].Col: str 8 '11/13/25'
+.WMI.Currencies[2].Value: str 4 '1.16'
+.WMI.Currencies[2].Row: str 13 '$ per &#8364;'
+.WMI.ThoughtOfTheWeek: str 1878
+.WMI.Key Rates[] list len 54
+.WMI.Key Rates[0].Col: str 8 '11/13/26'
+.WMI.Key Rates[0].Value: str 4 '4.88'
+.WMI.Key Rates[0].Row: str 20 '2-yr U.S. Treasuries'
+.WMI.Key Rates[1].Col: str 7 '11/6/26'
+.WMI.Key Rates[1].Value: str 4 '4.51'
+.WMI.Key Rates[1].Row: str 20 '2-yr U.S. Treasuries'
+.WMI.Key Rates[2].Col: str 7 '9/30/26'
+.WMI.Key Rates[2].Value: str 4 '4.88'
+.WMI.Key Rates[2].Row: str 20 '2-yr U.S. Treasuries'
+.WMI.StyleReturnCharts.YTD[] list len 9
+.WMI.StyleReturnCharts.YTD[0].Col: str 1 'V'
+.WMI.StyleReturnCharts.YTD[0].Value: str 4 '26.7'
+.WMI.StyleReturnCharts.YTD[0].Row: str 1 'L'
+.WMI.StyleReturnCharts.YTD[1].Col: str 1 'V'
+.WMI.StyleReturnCharts.YTD[1].Value: str 4 '23.3'
+.WMI.StyleReturnCharts.YTD[1].Row: str 1 'M'
+.WMI.StyleReturnCharts.YTD[2].Col: str 1 'V'
+.WMI.StyleReturnCharts.YTD[2].Value: str 4 '18.8'
+.WMI.StyleReturnCharts.YTD[2].Row: str 1 'S'
+.WMI.StyleReturnCharts.1Week[] list len 9
+.WMI.StyleReturnCharts.1Week[0].Col: str 1 'V'
+.WMI.StyleReturnCharts.1Week[0].Value: str 3 '2.3'
+.WMI.StyleReturnCharts.1Week[0].Row: str 1 'L'
+.WMI.StyleReturnCharts.1Week[1].Col: str 1 'V'
+.WMI.StyleReturnCharts.1Week[1].Value: str 3 '2.0'
+.WMI.StyleReturnCharts.1Week[1].Row: str 1 'M'
+.WMI.StyleReturnCharts.1Week[2].Col: str 1 'V'
+.WMI.StyleReturnCharts.1Week[2].Value: str 3 '0.9'
+.WMI.StyleReturnCharts.1Week[2].Row: str 1 'S'
+.WMI.Characteristics[] list len 32
+.WMI.Characteristics[0].Col: str 7 'NTM P/E'
+.WMI.Characteristics[0].Value: str 5 '18.16'
+.WMI.Characteristics[0].Row: str 7 'S&P 500'
+.WMI.Characteristics[1].Col: str 3 'P/B'
+.WMI.Characteristics[1].Value: str 4 '5.14'
+.WMI.Characteristics[1].Row: str 7 'S&P 500'
+.WMI.Characteristics[2].Col: str 9 'Div. Yld.'
+.WMI.Characteristics[2].Value: str 4 '1.06'
+.WMI.Characteristics[2].Row: str 7 'S&P 500'
+.WMI.Equities[] list len 48
+.WMI.Equities[0].Col: str 5 'Level'
+.WMI.Equities[0].Value: str 4 '7562'
+.WMI.Equities[0].Row: str 7 'S&P 500'
+.WMI.Equities[1].Col: str 6 '1 week'
+.WMI.Equities[1].Value: str 4 '2.54'
+.WMI.Equities[1].Row: str 7 'S&P 500'
+.WMI.Equities[2].Col: str 3 'QTD'
+.WMI.Equities[2].Value: str 5 '-1.07'
+.WMI.Equities[2].Row: str 7 'S&P 500'
+.WMI.WeekInReview: str 71
+.WMI.ChartOfTheWeek: str 18 'chartOfTheWeek.jpg'
+.AsOf: str 10 '11/16/2026'
+.EdwardJones.Disclosures.Disclosure2: str 4784
+.EdwardJones.Disclosures.Disclosure1: str 5577
+.EdwardJones.Disclosures.thoughtOfTheWeekDisclosure: str 90
+.EdwardJones.Disclosures.chartOfTheWeekDisclosure: str 351
+.EdwardJones.Key Rates[] list len 54
+.EdwardJones.Key Rates[0].Col: str 8 '11/13/26'
+.EdwardJones.Key Rates[0].Value: str 4 '4.88'
+.EdwardJones.Key Rates[0].Row: str 20 '2-yr U.S. Treasuries'
+.EdwardJones.Key Rates[1].Col: str 7 '11/6/26'
+.EdwardJones.Key Rates[1].Value: str 4 '4.51'
+.EdwardJones.Key Rates[1].Row: str 20 '2-yr U.S. Treasuries'
+.EdwardJones.Key Rates[2].Col: str 7 '9/30/26'
+.EdwardJones.Key Rates[2].Value: str 4 '4.88'
+.EdwardJones.Key Rates[2].Row: str 20 '2-yr U.S. Treasuries'
+.EdwardJones.SectorReturnCharts.YTD[] list len 12
+.EdwardJones.SectorReturnCharts.YTD[0].Value: str 4 '48.2'
+.EdwardJones.SectorReturnCharts.YTD[0].Row: str 6 'Energy'
+.EdwardJones.SectorReturnCharts.YTD[1].Value: str 4 '23.6'
+.EdwardJones.SectorReturnCharts.YTD[1].Row: str 11 'Health Care'
+.EdwardJones.SectorReturnCharts.YTD[2].Value: str 4 '22.6'
+.EdwardJones.SectorReturnCharts.YTD[2].Row: str 16 'Consumer\\Staples'
+.EdwardJones.SectorReturnCharts.1Week[] list len 12
+.EdwardJones.SectorReturnCharts.1Week[0].Value: str 3 '5.1'
+.EdwardJones.SectorReturnCharts.1Week[0].Row: str 6 'Energy'
+.EdwardJones.SectorReturnCharts.1Week[1].Value: str 3 '3.7'
+.EdwardJones.SectorReturnCharts.1Week[1].Row: str 11 'Industrials'
+.EdwardJones.SectorReturnCharts.1Week[2].Value: str 3 '3.5'
+.EdwardJones.SectorReturnCharts.1Week[2].Row: str 11 'Comm. Serv.'
+.EdwardJones.StyleReturnCharts.YTD[] list len 9
+.EdwardJones.StyleReturnCharts.YTD[0].Col: str 1 'V'
+.EdwardJones.StyleReturnCharts.YTD[0].Value: str 4 '26.7'
+.EdwardJones.StyleReturnCharts.YTD[0].Row: str 1 'L'
+.EdwardJones.StyleReturnCharts.YTD[1].Col: str 1 'V'
+.EdwardJones.StyleReturnCharts.YTD[1].Value: str 4 '23.3'
+.EdwardJones.StyleReturnCharts.YTD[1].Row: str 1 'M'
+.EdwardJones.StyleReturnCharts.YTD[2].Col: str 1 'V'
+.EdwardJones.StyleReturnCharts.YTD[2].Value: str 4 '18.8'
+.EdwardJones.StyleReturnCharts.YTD[2].Row: str 1 'S'
+.EdwardJones.StyleReturnCharts.1Week[] list len 9
+.EdwardJones.StyleReturnCharts.1Week[0].Col: str 1 'V'
+.EdwardJones.StyleReturnCharts.1Week[0].Value: str 3 '2.3'
+.EdwardJones.StyleReturnCharts.1Week[0].Row: str 1 'L'
+.EdwardJones.StyleReturnCharts.1Week[1].Col: str 1 'V'
+.EdwardJones.StyleReturnCharts.1Week[1].Value: str 3 '2.0'
+.EdwardJones.StyleReturnCharts.1Week[1].Row: str 1 'M'
+.EdwardJones.StyleReturnCharts.1Week[2].Col: str 1 'V'
+.EdwardJones.StyleReturnCharts.1Week[2].Value: str 3 '0.9'
+.EdwardJones.StyleReturnCharts.1Week[2].Row: str 1 'S'
+.EdwardJones.WeekAhead: str 34 'Retail Sales\nIndustrial Production'
+.EdwardJones.Characteristics[] list len 32
+.EdwardJones.Characteristics[0].Col: str 7 'NTM P/E'
+.EdwardJones.Characteristics[0].Value: str 5 '18.16'
+.EdwardJones.Characteristics[0].Row: str 7 'S&P 500'
+.EdwardJones.Characteristics[1].Col: str 3 'P/B'
+.EdwardJones.Characteristics[1].Value: str 4 '5.14'
+.EdwardJones.Characteristics[1].Row: str 7 'S&P 500'
+.EdwardJones.Characteristics[2].Col: str 9 'Div. Yld.'
+.EdwardJones.Characteristics[2].Value: str 4 '1.06'
+.EdwardJones.Characteristics[2].Row: str 7 'S&P 500'
+.EdwardJones.Equities[] list len 48
+.EdwardJones.Equities[0].Col: str 5 'Level'
+.EdwardJones.Equities[0].Value: str 4 '7562'
+.EdwardJones.Equities[0].Row: str 7 'S&P 500'
+.EdwardJones.Equities[1].Col: str 6 '1 week'
+.EdwardJones.Equities[1].Value: str 4 '2.54'
+.EdwardJones.Equities[1].Row: str 7 'S&P 500'
+.EdwardJones.Equities[2].Col: str 3 'QTD'
+.EdwardJones.Equities[2].Value: str 5 '-1.07'
+.EdwardJones.Equities[2].Row: str 7 'S&P 500'
+.EdwardJones.WeekInReview: str 71
+.EdwardJones.ChartOfTheWeek: str 18 'chartOfTheWeek.jpg'
+.EdwardJones.Commodities[] list len 24
+.EdwardJones.Commodities[0].Col: str 8 '11/13/26'
+.EdwardJones.Commodities[0].Value: str 5 '92.30'
+.EdwardJones.Commodities[0].Row: str 9 'Oil (WTI)'
+.EdwardJones.Commodities[1].Col: str 8 '12/31/25'
+.EdwardJones.Commodities[1].Value: str 5 '57.26'
+.EdwardJones.Commodities[1].Row: str 9 'Oil (WTI)'
+.EdwardJones.Commodities[2].Col: str 8 '11/13/25'
+.EdwardJones.Commodities[2].Value: str 5 '59.54'
+.EdwardJones.Commodities[2].Row: str 9 'Oil (WTI)'
+.EdwardJones.Fixed Income[] list len 24
+.EdwardJones.Fixed Income[0].Col: str 5 'Yield'
+.EdwardJones.Fixed Income[0].Value: str 4 '5.49'
+.EdwardJones.Fixed Income[0].Row: str 14 'U.S. Aggregate'
+.EdwardJones.Fixed Income[1].Col: str 6 '1 week'
+.EdwardJones.Fixed Income[1].Value: str 5 '-1.50'
+.EdwardJones.Fixed Income[1].Row: str 14 'U.S. Aggregate'
+.EdwardJones.Fixed Income[2].Col: str 3 'QTD'
+.EdwardJones.Fixed Income[2].Value: str 4 '1.31'
+.EdwardJones.Fixed Income[2].Row: str 14 'U.S. Aggregate'
+.EdwardJones.Currencies[] list len 9
+.EdwardJones.Currencies[0].Col: str 8 '11/13/26'
+.EdwardJones.Currencies[0].Value: str 4 '1.10'
+.EdwardJones.Currencies[0].Row: str 13 '$ per &#8364;'
+.EdwardJones.Currencies[1].Col: str 8 '12/31/25'
+.EdwardJones.Currencies[1].Value: str 4 '1.17'
+.EdwardJones.Currencies[1].Row: str 13 '$ per &#8364;'
+.EdwardJones.Currencies[2].Col: str 8 '11/13/25'
+.EdwardJones.Currencies[2].Value: str 4 '1.16'
+.EdwardJones.Currencies[2].Row: str 13 '$ per &#8364;'
+.EconomicUpdate.economic_update__profits.data: str 614
+.EconomicUpdate.economic_update__profits.Title: str 7 'Profits'
+.EconomicUpdate.economic_update__profits.project: str 4 'true'
+.EconomicUpdate.economic_update__profits.updated: str 4 'true'
+.EconomicUpdate.economic_update_growth.data: str 774
+.EconomicUpdate.economic_update_growth.Title: str 6 'Growth'
+.EconomicUpdate.economic_update_growth.project: str 5 'false'
+.EconomicUpdate.economic_update_growth.updated: str 5 'false'
+.EconomicUpdate.economic_update_jobs.data: str 644
+.EconomicUpdate.economic_update_jobs.Title: str 4 'Jobs'
+.EconomicUpdate.economic_update_jobs.project: str 5 'false'
+.EconomicUpdate.economic_update_jobs.updated: str 5 'false'
+.EconomicUpdate.economic_update_growth_inv_themes.data: str 248
+.EconomicUpdate.economic_update_growth_inv_themes.Title: str 17 'Investment Themes'
+.EconomicUpdate.economic_update_growth_inv_themes.project: str 5 'false'
+.EconomicUpdate.economic_update_growth_inv_themes.updated: str 5 'false'
+.EconomicUpdate.economic_update_rates.data: str 588
+.EconomicUpdate.economic_update_rates.Title: str 5 'Rates'
+.EconomicUpdate.economic_update_rates.project: str 5 'false'
+.EconomicUpdate.economic_update_rates.updated: str 5 'false'
+.EconomicUpdate.economic_update_risks.data: str 191
+.EconomicUpdate.economic_update_risks.Title: str 5 'Risks'
+.EconomicUpdate.economic_update_risks.project: str 5 'false'
+.EconomicUpdate.economic_update_risks.updated: str 5 'false'
+.EconomicUpdate.Disclosure: str 3262
+.EconomicUpdate.economic_update_inflation.data: str 521
+.EconomicUpdate.economic_update_inflation.Title: str 9 'Inflation'
+.EconomicUpdate.economic_update_inflation.project: str 5 'false'
+.EconomicUpdate.economic_update_inflation.updated: str 4 'true'
