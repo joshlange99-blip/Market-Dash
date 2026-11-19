@@ -245,6 +245,54 @@ def yahoo_quote(sym, prepost=False):
     raise last or ValueError("no data")
 
 
+TREND_SYMS = {"^GSPC", "^IXIC", "^DJI", "^RUT", "^VIX", "^TNX", "DX-Y.NYB", "CL=F", "GC=F", "BTC-USD"}
+
+
+def yahoo_daily(sym):
+    """About a month of daily closes, for 5-day / 1-month moves and up/down streaks."""
+    for host in ("query1", "query2"):
+        try:
+            j = json.loads(get_browser(f"https://{host}.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(sym)}?range=1mo&interval=1d", 12))
+            r = j["chart"]["result"][0]
+            return [c for c in r["indicators"]["quote"][0]["close"] if c is not None]
+        except Exception:  # noqa: BLE001
+            time.sleep(0.4)
+    return []
+
+
+def trend(closes, is_yield=False):
+    if len(closes) < 6:
+        return None
+    last = closes[-1]
+
+    def chg(a):
+        return round((last - a) * 100) if is_yield else round((last - a) / a * 100, 2)
+    streak = 0
+    for i in range(len(closes) - 1, 0, -1):
+        d = closes[i] - closes[i - 1]
+        if d == 0 or (streak and (d > 0) != (streak > 0)):
+            break
+        streak += 1 if d > 0 else -1
+    hi = max(closes)
+    return {"d5": chg(closes[-6]), "m1": chg(closes[0]), "streak": streak,
+            "offHi": round((last - hi) * 100) if is_yield else round((last - hi) / hi * 100, 2)}
+
+
+def add_trends(quotes):
+    want = [q for q in quotes if q["s"] in TREND_SYMS and not q.get("err")]
+    with ThreadPoolExecutor(max_workers=5) as ex:
+        hist = list(ex.map(lambda q: yahoo_daily(q["s"]), want))
+    for q, h in zip(want, hist):
+        t = trend(h, bool(q.get("y")))
+        if t:
+            q["tr"] = t
+    for q in quotes:  # official 2-yr: trend from the Treasury series already loaded
+        if q["s"] == "UST2Y" and q.get("sp"):
+            t = trend(q["sp"][-22:], True)
+            if t:
+                q["tr"] = t
+
+
 def treasury_2y(name):
     """Official U.S. Treasury 2-yr par yield (latest close) from the dashboard's yields.json.
     Yahoo has no live 2-yr yield index, and its 2-yr yield future trades too thinly."""
@@ -346,7 +394,7 @@ def get_headlines(since_ts):
             continue
         seen.add(k)
         out.append(n)
-    return out[:40]
+    return out[:45]
 
 
 # ---------------------------------------------------------------- earnings
@@ -489,6 +537,68 @@ def upcoming(day, kind):
     return up
 
 
+# ---------------------------------------------------------------- J.P. Morgan weekly context
+JPM_PAGES = [
+    "https://am.jpmorgan.com/us/en/asset-management/adv/insights/market-insights/market-updates/weekly-market-recap/",
+    "https://am.jpmorgan.com/us/en/asset-management/per/insights/market-insights/market-updates/weekly-market-recap/",
+]
+
+
+def _pdf_text(raw):
+    try:
+        from pypdf import PdfReader
+        import io
+        return "\n".join((p.extract_text() or "") for p in PdfReader(io.BytesIO(raw)).pages[:4])
+    except Exception as e:  # noqa: BLE001
+        log(f"  J.P. Morgan PDF unreadable: {type(e).__name__}")
+        return ""
+
+
+def jpm_weekly():
+    """J.P. Morgan Asset Management's Weekly Market Recap, used as background for the AI.
+    Only the week and link are saved with the brief; the text itself is never stored or shown."""
+    for page in JPM_PAGES:
+        try:
+            if _CSESS is None:
+                raise RuntimeError("no browser client")
+            r = _CSESS.get(page, timeout=20)
+            if r.status_code != 200:
+                log(f"  J.P. Morgan page HTTP {r.status_code}")
+                continue
+            h = r.text
+            m = re.search(r"Week of\s+([A-Z][a-z]+\s+\d{1,2},\s+\d{4})", h)
+            week = m.group(1) if m else ""
+            text = ""
+            i = h.find("Week in review")
+            if i >= 0:
+                text = clean(h[i:i + 60000])
+                cut = re.search(r"(This communication is issued|READ IMPORTANT LEGAL|Copyright \d{4} JPMorgan)", text)
+                text = text[:cut.start()] if cut else text
+            pdf = ""
+            pm = re.search(r'href="([^"]+?\.pdf)"', h[h.find("Weekly Market Recap"):] if "Weekly Market Recap" in h else h)
+            if pm:
+                pdf = urllib.parse.urljoin(page, html.unescape(pm.group(1)))
+            if len(text) < 400 and pdf:
+                pr = _CSESS.get(pdf, timeout=30)
+                if pr.status_code == 200 and pr.content[:4] == b"%PDF":
+                    text = re.sub(r"\s+", " ", _pdf_text(pr.content))
+                else:
+                    log(f"  J.P. Morgan PDF HTTP {pr.status_code}")
+            if week:
+                try:
+                    if (et_now().date() - dt.datetime.strptime(week, "%B %d, %Y").date()).days > 10:
+                        log(f"  J.P. Morgan recap is old (week of {week}); skipped")
+                        continue
+                except ValueError:
+                    pass
+            log(f"  J.P. Morgan recap: week of {week or '?'}, {len(text)} chars{' (PDF)' if pdf else ''}")
+            if len(text) >= 400:
+                return {"week": week, "url": page, "pdf": pdf, "text": text[:7000]}
+        except Exception as e:  # noqa: BLE001
+            log(f"  J.P. Morgan recap failed: {type(e).__name__}: {str(e)[:100]}")
+    return None
+
+
 # ---------------------------------------------------------------- writing
 def pct(q):
     return None if not q or q.get("err") or not q.get("pc") else (q["p"] - q["pc"]) / q["pc"] * 100
@@ -509,6 +619,12 @@ def fmt_q(q):
         s += f" [as of {dt.datetime.fromtimestamp(q['t'], ET).strftime('%a %-I:%M %p')} ET]"
     if q.get("old"):
         s += " (STALE: last update several days ago; do not describe as today's move)"
+    t = q.get("tr")
+    if t:
+        unit = " bp" if q.get("y") else "%"
+        st_ = (f"{abs(t['streak'])} straight {'up' if t['streak'] > 0 else 'down'} sessions" if abs(t["streak"]) >= 2 else "")
+        s += (f"; 5-day {'+' if t['d5'] >= 0 else ''}{t['d5']}{unit}, 1-month {'+' if t['m1'] >= 0 else ''}{t['m1']}{unit}"
+              + (f", {st_}" if st_ else "") + (f", {abs(t['offHi'])}{unit} below 1-month high" if t["offHi"] < 0 else ", at 1-month high"))
     return s
 
 
@@ -546,26 +662,47 @@ def brief_prompt(b):
     if N:
         L.append("\nHeadlines (newest first, numbered):\n" + "\n".join(
             f"[{i + 1}] {dt.datetime.fromtimestamp(n['t'] or time.time(), ET).strftime('%-I:%M %p')} {n['s']}: {n['h']}"
-            + (f" — {n['d'][:150]}" if n.get("d") and n["d"] != n["h"] else "") for i, n in enumerate(N)))
+            + (f" — {n['d'][:240]}" if n.get("d") and n["d"] != n["h"] else "") for i, n in enumerate(N)))
+    P = b.get("_prev")
+    if P:
+        L.append(f"\nPrevious brief ({P['day']} {'morning' if P['kind'] == 'am' else 'after the close'}), for continuity only "
+                 f"(do not repeat its numbers unless today's data shows them): {P.get('title', '')} — {P.get('summary', '')}")
+    J = b.get("_jpm")
+    if J:
+        L.append(f"\nBACKGROUND — J.P. Morgan Asset Management, Weekly Market Recap (week of {J['week'] or 'n/a'}). "
+                 "Weekly context written by J.P. Morgan; may predate today's data:\n" + J["text"])
     return "\n".join(L)
 
 
-SYS = """You are a markets editor writing a short, plain-English market brief for one wealth advisor reading it on a phone.
-Rules:
-- Use ONLY the prices, earnings, scheduled events and headlines provided. Never invent numbers, companies, events or quotes. If something isn't in the data, leave it out.
-- Percent moves you mention must match the data given. Round to one decimal. Yield moves are in basis points (bp).
-- Explain WHY markets moved when the headlines support it; say "no single clear driver" if they don't.
-- Neutral tone. No investment advice, no predictions, no hype.
+SYS = """You are a senior markets strategist writing a daily market brief for a wealth advisor, read on a phone before talking with clients.
+Write with color and insight: connect the dots between events and market moves, and explain HOW each development affects markets, not just that it happened.
+
+Facts:
+- Use ONLY the prices, earnings, scheduled events, headlines and background provided. Never invent numbers, companies, events or quotes. If something isn't in the data, leave it out.
+- Percent moves you mention must match the data. Round to one decimal. Yield moves are in basis points (bp).
+- You MAY explain market mechanics using widely accepted relationships, framed as how markets typically respond (e.g. higher yields raise the discount rate on future earnings, which weighs most on richly valued growth stocks; a stronger dollar tends to pressure commodities and multinational earnings; a hot inflation print pushes out rate-cut expectations). Do not present these as new facts or attach numbers to them.
+- When the headlines don't explain a move, say so plainly rather than guessing. Never mention Fed rate hikes, cuts or decisions unless a headline says so.
+- If a J.P. Morgan weekly recap is provided, use it only as background for the bigger picture. Paraphrase in your own words, attribute it ("J.P. Morgan's weekly recap notes..."), never quote more than 10 words, and prefer today's data where they differ.
 - Cite headlines by their [number] in "src". Every driver must cite at least one headline that directly supports it.
-- Do not speculate. Never mention Fed rate hikes, cuts or decisions unless a headline says so.
+- Neutral, professional tone. No investment advice (no buy/sell/hold, no allocation changes), no predictions, no hype.
+
 Reply with JSON only, no other text, in exactly this shape:
-{"title": "one specific headline under 90 characters naming what moved and why, e.g. 'Stocks slip as Nvidia CEO exit weighs on tech; oil jumps'",
- "summary": "2-3 sentences: the big picture",
- "drivers": [{"h": "3-6 word lead", "t": "1-2 sentences", "src": [1,2]}],
- "earnings": [{"sym": "TICKER", "t": "one sentence"}],
- "watch": [{"t": "short item to watch next", "src": [3]}]}
-Give 3-6 drivers. Add an earnings note ONLY when a headline adds context beyond the numbers (cite it in the sentence's wording); the numbers are already shown in a table, so do not just restate beat/miss.
-Give 0-4 watch items. Each must be either a scheduled economic release or earnings report listed above (use "src": []) or something a numbered headline names as upcoming (cite it)."""
+{"title": "one specific headline under 100 characters naming what moved and why",
+ "summary": "4-5 sentences: the big picture. How stocks, bonds, the dollar and commodities moved together, and the main thread tying them.",
+ "drivers": [{"h": "3-7 word lead",
+              "t": "3-5 sentences: what happened; why it matters for markets (the mechanism: rate expectations, earnings outlook, risk appetite, supply/demand...); and which assets or sectors reacted and by how much.",
+              "impact": "very short tag of the market effect, e.g. 'Chips down, yields up'",
+              "src": [1, 2]}],
+ "rates": "3-4 sentences on Treasury yields, rate expectations, the dollar and commodities, and how they fed through to stocks.",
+ "breadth": "MORNING: 2-4 sentences on overseas sessions and what they signal for the US open. EVENING: 2-4 sentences on sector leadership and rotation, large vs small caps, and what the pattern says about investor mood (defensive vs cyclical, growth vs value).",
+ "earnings": [{"sym": "TICKER", "t": "1-2 sentences"}],
+ "context": "2-3 sentences placing today in the recent trend (streaks, 5-day and 1-month moves, distance from highs) and the week's broader themes.",
+ "takeaway": "2 sentences: what today means in the bigger picture for long-term, diversified investors. Neutral and educational; no recommendations.",
+ "talk": "one or two neutral sentences the advisor could say if a client asks 'what's going on in the market?'",
+ "watch": [{"t": "short item", "why": "one sentence on why it matters for markets", "src": [3]}]}
+Give 4-6 drivers. Add an earnings note ONLY when a headline adds context beyond the numbers; the numbers are already shown in a table, so do not just restate beat/miss.
+Give 2-5 watch items. Each must be either a scheduled economic release or earnings report listed above (use "src": []) or something a numbered headline names as upcoming (cite it).
+Aim for 550-750 words in total across all fields."""
 
 
 def parse_ai_json(txt):
@@ -594,11 +731,13 @@ def clean_ai(o, n_news, known=()):
         v = re.sub(r"\s*\[\d+(?:\s*,\s*\d+)*\]", "", v)
         return re.sub(r"\s+([.,;])", r"\1", v).strip()[:n]
     out = {
-        "title": st(o.get("title"), 140), "summary": st(o.get("summary"), 900),
-        "drivers": [d for d in ({"h": st(d.get("h"), 80), "t": st(d.get("t"), 500),
+        "title": st(o.get("title"), 140), "summary": st(o.get("summary"), 1500),
+        "rates": st(o.get("rates"), 1200), "breadth": st(o.get("breadth"), 1200), "context": st(o.get("context"), 1000),
+        "takeaway": st(o.get("takeaway"), 700), "talk": st(o.get("talk"), 400),
+        "drivers": [d for d in ({"h": st(d.get("h"), 80), "t": st(d.get("t"), 1400), "impact": st(d.get("impact"), 80),
                                  "src": [int(n) for n in (d.get("src") or []) if str(n).isdigit() and 1 <= int(n) <= n_news][:4]}
                                 for d in (o.get("drivers") or [])[:7] if isinstance(d, dict)) if d["t"]],
-        "earnings": [e for e in ({"sym": st(e.get("sym"), 10).upper(), "t": st(e.get("t"), 300)}
+        "earnings": [e for e in ({"sym": st(e.get("sym"), 10).upper(), "t": st(e.get("t"), 500)}
                                  for e in (o.get("earnings") or [])[:12] if isinstance(e, dict)) if e["sym"] and e["t"]],
         "watch": [],
     }
@@ -606,16 +745,16 @@ def clean_ai(o, n_news, known=()):
     # earnings notes that only restate the table add nothing
     raw = {str(x.get("sym", "")).upper(): str(x.get("t", "")) for x in (o.get("earnings") or []) if isinstance(x, dict)}
     out["earnings"] = [e for e in out["earnings"] if not re.search(r"earnings table|reported in the (data|table)", raw.get(e["sym"], ""), re.I)]
-    for w in (o.get("watch") or [])[:6]:
+    for w in (o.get("watch") or [])[:8]:
         if isinstance(w, str):
             w = {"t": w, "src": []}
         if not isinstance(w, dict) or not st(w.get("t"), 200):
             continue
-        txt = st(w.get("t"), 200)
+        txt, why = st(w.get("t"), 200), st(w.get("why"), 400)
         src = [int(n) for n in (w.get("src") or []) if str(n).isdigit() and 1 <= int(n) <= n_news]
         if src or (known and any(k in txt.lower() for k in known)):
-            out["watch"].append(txt)
-    out["watch"] = out["watch"][:4]
+            out["watch"].append({"t": txt, "why": why} if why else txt)
+    out["watch"] = out["watch"][:5]
     return out if out["title"] or out["summary"] else None
 
 
@@ -627,7 +766,7 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 _POST = urllib.request.build_opener(_NoRedirect)
 
 
-def post_json(url, body, headers, timeout=90):
+def post_json(url, body, headers, timeout=180):
     """POST JSON, re-sending the POST (not a GET) if the server redirects."""
     data = json.dumps(body).encode()
     for _ in range(4):
@@ -658,7 +797,7 @@ def write_with_ai(b):
         model = os.environ.get("CLAUDE_MODEL", "").strip() or "claude-sonnet-5-5"
         try:
             j = post_json("https://api.anthropic.com/v1/messages",
-                          {"model": model, "max_tokens": 4000, "system": SYS, "messages": [{"role": "user", "content": prompt}]},
+                          {"model": model, "max_tokens": 6000, "system": SYS, "messages": [{"role": "user", "content": prompt}]},
                           {"x-api-key": key, "anthropic-version": "2023-06-01"})
             txt = "".join(c.get("text", "") for c in j.get("content", []) if c.get("type") == "text")
             o = clean_ai(parse_ai_json(txt), n_news, known)
@@ -682,7 +821,7 @@ def write_with_ai(b):
         model = os.environ.get("CF_AI_MODEL", "").strip() or "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
         j = post_json(f"https://api.cloudflare.com/client/v4/accounts/{acct}/ai/run/{model}",
                       {"messages": [{"role": "system", "content": SYS}, {"role": "user", "content": prompt}],
-                       "max_tokens": 3000, "temperature": 0.3}, {"Authorization": f"Bearer {cft}"})
+                       "max_tokens": 4500, "temperature": 0.3}, {"Authorization": f"Bearer {cft}"})
         if not j.get("success", True):
             raise ValueError("Workers AI error: " + json.dumps(j.get("errors"))[:200])
         res = j.get("result") or {}
@@ -728,6 +867,15 @@ def build(day, kind):
         i += len(MKT[k])
     ok = sum(1 for q in res if not q.get("err"))
     log(f"  quotes: {ok}/{len(res)} ok")
+    add_trends(res)
+    log(f"  trends: {sum(1 for q in res if q.get('tr'))}")
+    prev = [x for x in load_index().get("briefs", []) if x["id"] != b["id"] and (x["day"], x["kind"] == "pm") < (str(day), kind == "pm")]
+    if prev:
+        b["_prev"] = prev[0]
+    jp = jpm_weekly()
+    if jp:
+        b["_jpm"] = jp
+        D["jpm"] = {"week": jp["week"], "url": jp["url"]}
     if kind == "am":
         since = et_dt(prev_trading_day(day), 16 * 60)
     else:
@@ -762,6 +910,8 @@ def build(day, kind):
     b["secs"] = round(time.time() - t0, 1)
     b["quotesOk"] = ok
     b["log"] = LOG[-40:]
+    b.pop("_prev", None)
+    b.pop("_jpm", None)  # J.P. Morgan's text is used as background only and never saved
     return b
 
 

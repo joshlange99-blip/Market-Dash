@@ -163,7 +163,7 @@ nav.tabs button{position:relative}
 .drv li{padding:11px 0;border-bottom:1px dashed var(--line)}
 .drv li:last-child{border-bottom:0}
 .drv b{display:block;font-size:14.5px;margin-bottom:2px}
-.drv span{font-size:14.5px;color:#cdd6e6}
+.drv span{font-size:14.5px;color:#cdd6e6;display:block}
 .cite{display:inline-block;font-size:11px;font-weight:700;color:var(--accent);background:rgba(56,189,248,.1);border-radius:5px;padding:0 5px;margin-left:4px;vertical-align:1px}
 .grp{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);font-weight:700;margin:14px 0 4px}
 .grp:first-child{margin-top:0}
@@ -199,7 +199,13 @@ table.qt .na{color:var(--dim);font-weight:500}
 .imp2{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px;background:var(--warn)}
 .imp2.High{background:var(--down)}
 .watchl{margin:0;padding-left:18px;font-size:14.5px}
-.watchl li{margin:4px 0}
+.watchl li{margin:6px 0}
+.watchl .why{display:block;font-size:13.5px;color:var(--muted)}
+.drv .imp{display:inline-block;font-size:11.5px;font-weight:700;color:var(--warn);background:rgba(245,158,11,.1);border-radius:5px;padding:1px 7px;margin:6px 0 0}
+.para{font-size:14.5px;color:#cdd6e6;margin:0}
+.para + .grp{margin-top:14px}
+.bigpic p{font-size:14.5px;color:#cdd6e6;margin:0 0 10px}
+.trd{display:block;font-size:11.5px;color:var(--dim)}
 .hl{list-style:none;margin:0;padding:0;counter-reset:none}
 .hl li{display:grid;grid-template-columns:28px 1fr;gap:6px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
 .hl li:first-child{border-top:0}
@@ -1032,7 +1038,9 @@ function qTable(list){
     if (q.err) return `<tr><td>${esc(q.n)}</td><td class="v na">unavailable</td><td class="c"></td><td class="sp"></td></tr>`;
     const ch = qChange(q), val = q.y ? nf(q.p) + "%" : nf(q.p, q.p >= 10000 && /BTC/.test(q.s) ? 0 : 2);
     const asof = (q.old || q.src) && q.t ? `<span class="m" style="display:block;font-size:11.5px;color:var(--dim)">${q.src ? esc(q.src) + ", " : "as of "}${new Date(q.t*1000).toLocaleDateString([], {month:"short", day:"numeric"})}</span>` : "";
-    return `<tr><td>${esc(q.n)}${asof}</td><td class="v num">${val}</td><td class="c num ${ch.cls}">${ch.txt}</td><td class="sp">${spark(q.sp, (ch.v||0) >= 0)}</td></tr>`;
+    const t = q.tr, u = q.y ? " bp" : "%";
+    const trd = t && !asof ? `<span class="trd">5d ${t.d5>0?"+":""}${q.y ? t.d5 : nf(t.d5,1)}${u}${Math.abs(t.streak)>=2 ? ` · ${Math.abs(t.streak)} ${t.streak>0?"up":"down"} days` : ""}</span>` : "";
+    return `<tr><td>${esc(q.n)}${asof}${trd}</td><td class="v num">${val}</td><td class="c num ${ch.cls}">${ch.txt}</td><td class="sp">${spark(q.sp, (ch.v||0) >= 0)}</td></tr>`;
   }).join("")}</table>`;
 }
 function sectorBars(list){
@@ -1055,7 +1063,10 @@ function renderBrief(b){
     ${T.by ? `<div class="bby">Summary written by ${esc(T.by)} using only the data below. Every number in the tables comes straight from the data sources.</div>`
            : `<div class="bby">The AI summary wasn't available for this brief, so it shows the data only.</div>`}</div>`;
   if ((T.drivers||[]).length) h += `<div class="card"><div class="chead"><h2>${b.kind==="am" ? "What's moving markets" : "What drove the market"}</h2></div><div class="cbody"><ul class="drv">${
-    T.drivers.map(d => `<li><b>${esc(d.h)}</b><span>${esc(d.t)}</span>${cites(d.src)}</li>`).join("")}</ul></div></div>`;
+    T.drivers.map(d => `<li><b>${esc(d.h)}</b><span>${esc(d.t)}${cites(d.src)}</span>${d.impact ? `<span class="imp">${esc(d.impact)}</span>` : ""}</li>`).join("")}</ul></div></div>`;
+  if (T.rates || T.breadth) h += `<div class="card"><div class="chead"><h2>More color</h2></div><div class="cbody">${
+    T.rates ? `<div class="grp">Rates, the dollar &amp; commodities</div><p class="para">${esc(T.rates)}</p>` : ""}${
+    T.breadth ? `<div class="grp">${b.kind==="am" ? "Around the world" : "Under the surface"}</div><p class="para">${esc(T.breadth)}</p>` : ""}</div></div>`;
   const groups = b.kind === "am"
     ? [["Futures (overnight)","fut"],["US indexes (last session)","us"],["Overseas","global"],["Rates, dollar & commodities","macro"]]
     : [["US indexes","us"],["Rates, dollar & commodities","macro"]];
@@ -1070,18 +1081,21 @@ function renderBrief(b){
       ${e.mv!=null ? `<span class="${e.mv>=0?"pos":"neg"}"><b>${e.mv>0?"+":""}${nf(e.mv)}%</b> <span class="lb">${esc(e.mvWhen||"")}</span></span>` : ""}</div>
       ${notes[e.sym] ? `<div class="note2">${esc(notes[e.sym])}</div>` : ""}</div>`).join("")
     : `<div class="empty" style="padding:8px 0">No major reports in this window.</div>`}</div></div>`;
+  if (T.context || T.takeaway || T.talk) h += `<div class="card"><div class="chead"><h2>The bigger picture</h2></div><div class="cbody bigpic">${
+    T.context ? `<p>${esc(T.context)}</p>` : ""}${T.takeaway ? `<p>${esc(T.takeaway)}</p>` : ""}${
+    T.talk ? `<div class="talk" style="margin-top:4px"><b>If a client asks:</b> “${esc(T.talk)}”</div>` : ""}</div></div>`;
   const up = D.up || {}, W = T.watch || [];
   if ((up.econ||[]).length || (up.earn||[]).length || W.length){
     h += `<div class="card"><div class="chead"><h2>${b.kind==="am" ? "On the calendar today" : "Coming up next"}</h2>${up.day ? `<span class="sub">${bDay(up.day)}</span>` : ""}</div><div class="cbody">`;
     if ((up.econ||[]).length) h += `<div class="grp">Economic releases</div><ul class="evl">${up.econ.map(e => `<li><span class="t num">${new Date(e.ts*1000).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}</span><span><i class="imp2 ${esc(e.impact)}"></i>${esc(e.title)}${(e.forecast||e.previous) ? `<span class="fp">${e.forecast ? "Forecast " + esc(e.forecast) : ""}${e.forecast && e.previous ? " · " : ""}${e.previous ? "Previous " + esc(e.previous) : ""}</span>` : ""}</span></li>`).join("")}</ul>`;
     if ((up.earn||[]).length) h += `<div class="grp" style="margin-top:12px">Earnings</div><div class="chips">${up.earn.map(e => `<span class="chip" style="cursor:default" title="${esc(e.name||"")}">${esc(e.sym)} <span style="color:var(--dim);font-weight:500">${e.when==="bmo"?"pre":e.when==="amc"?"after":""}</span></span>`).join("")}</div>`;
-    if (W.length) h += `<div class="grp" style="margin-top:12px">Worth watching</div><ul class="watchl">${W.map(w => `<li>${esc(w)}</li>`).join("")}</ul>`;
+    if (W.length) h += `<div class="grp" style="margin-top:12px">Worth watching</div><ul class="watchl">${W.map(w => typeof w === "string" ? `<li>${esc(w)}</li>` : `<li><b>${esc(w.t)}</b>${w.why ? `<span class="why">${esc(w.why)}</span>` : ""}</li>`).join("")}</ul>`;
     h += `</div></div>`;
   }
   if (N.length) h += `<div class="card"><div class="chead"><h2>Headlines</h2><span class="sub">${b.kind==="am" ? "Overnight & this morning" : "During the session"}</span></div><div class="cbody"><ol class="hl">${
     N.map((n,i) => `<li ${i>=12?"hidden":""}><span class="n">${i+1}</span><span><a href="${esc(n.u)}" target="_blank" rel="noopener">${esc(n.h)}</a><span class="m">${esc(n.s)}${n.t ? " · " + new Date(n.t*1000).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) : ""}</span></span></li>`).join("")}</ol>${
     N.length > 12 ? `<div class="nmore"><button class="chip" data-more>Show all ${N.length}</button></div>` : ""}</div></div>`;
-  h += `<div class="bsrc">Prices: Yahoo Finance · Headlines: CNBC, MarketWatch, WSJ, Bloomberg, Reuters, AP & others · Earnings: ${esc((D.earn && D.earn.src) || "—")} · Calendar: ForexFactory</div>`;
+  h += `<div class="bsrc">Prices: Yahoo Finance · Headlines: CNBC, MarketWatch, WSJ, Bloomberg, Reuters, AP & others · Earnings: ${esc((D.earn && D.earn.src) || "—")} · Calendar: ForexFactory${D.jpm ? ` · Weekly context: <a href="${esc(D.jpm.url)}" target="_blank" rel="noopener">J.P. Morgan Weekly Market Recap${D.jpm.week ? " (week of " + esc(D.jpm.week) + ")" : ""}</a>` : ""}</div>`;
   return h;
 }
 loadBriefIndex();
@@ -1089,7 +1103,7 @@ setInterval(() => { if (!document.hidden) loadBriefIndex(); }, 10*60*1000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) loadBriefIndex(); });
 
 /* ================= auto-update: reload when a newer version is published ================= */
-const BUILD = "202611130234";
+const BUILD = "202611191335";
 async function checkForUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
