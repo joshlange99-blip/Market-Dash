@@ -25,6 +25,10 @@ if m:
             else:
                 out.append(f"{p}: {type(o).__name__} {o!r}"[:120])
         walk(j)
+        out.append("==== wmrJson")
+        w = json.loads(j["wmrJson"]) if isinstance(j.get("wmrJson"), str) else {}
+        n0 = len(out); walk(w)
+        out[n0:] = [l for l in out[n0:] if not re.match(r".*\[([3-9]|\d\d)\]", l)]
     except Exception as e:
         out.append(f"not json: {e} :: {x.text[:200]!r}")
-open("probe.txt", "w").write("\n".join(out[:400]))
+open("probe.txt", "w").write("\n".join(out[:520]))
