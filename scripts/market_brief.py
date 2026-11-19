@@ -544,19 +544,20 @@ JPM_PAGES = [
 ]
 
 
-def _pdf_text(raw):
-    try:
-        from pypdf import PdfReader
-        import io
-        return "\n".join((p.extract_text() or "") for p in PdfReader(io.BytesIO(raw)).pages[:4])
-    except Exception as e:  # noqa: BLE001
-        log(f"  J.P. Morgan PDF unreadable: {type(e).__name__}")
-        return ""
+def _jpm_table(rows):
+    """[{Row, Col, Value}] -> 'Row: Col v, Col v; ...'"""
+    by = {}
+    for r in rows or []:
+        if isinstance(r, dict) and r.get("Row"):
+            name = html.unescape(str(r["Row"])).replace("\\", " ")
+            by.setdefault(name, []).append(f"{r['Col']} {r['Value']}" if r.get("Col") else str(r.get("Value")))
+    return "; ".join(f"{k}: {', '.join(v)}" for k, v in by.items())
 
 
 def jpm_weekly():
     """J.P. Morgan Asset Management's Weekly Market Recap, used as background for the AI.
-    Only the week and link are saved with the brief; the text itself is never stored or shown."""
+    The page loads its content from an AEM data file (jpm_am_wmr.model.json). Only the week and
+    link are saved with the brief; J.P. Morgan's text itself is never stored or shown."""
     for page in JPM_PAGES:
         try:
             if _CSESS is None:
@@ -565,35 +566,44 @@ def jpm_weekly():
             if r.status_code != 200:
                 log(f"  J.P. Morgan page HTTP {r.status_code}")
                 continue
-            h = r.text
-            m = re.search(r"Week of\s+([A-Z][a-z]+\s+\d{1,2},\s+\d{4})", h)
-            week = m.group(1) if m else ""
-            text = ""
-            i = h.find("Week in review")
-            if i >= 0:
-                text = clean(h[i:i + 60000])
-                cut = re.search(r"(This communication is issued|READ IMPORTANT LEGAL|Copyright \d{4} JPMorgan)", text)
-                text = text[:cut.start()] if cut else text
-            pdf = ""
-            pm = re.search(r'href="([^"]+?\.pdf)"', h[h.find("Weekly Market Recap"):] if "Weekly Market Recap" in h else h)
-            if pm:
-                pdf = urllib.parse.urljoin(page, html.unescape(pm.group(1)))
-            if len(text) < 400 and pdf:
-                pr = _CSESS.get(pdf, timeout=30)
-                if pr.status_code == 200 and pr.content[:4] == b"%PDF":
-                    text = re.sub(r"\s+", " ", _pdf_text(pr.content))
-                else:
-                    log(f"  J.P. Morgan PDF HTTP {pr.status_code}")
-            if week:
-                try:
-                    if (et_now().date() - dt.datetime.strptime(week, "%B %d, %Y").date()).days > 10:
-                        log(f"  J.P. Morgan recap is old (week of {week}); skipped")
-                        continue
-                except ValueError:
-                    pass
-            log(f"  J.P. Morgan recap: week of {week or '?'}, {len(text)} chars{' (PDF)' if pdf else ''}")
-            if len(text) >= 400:
-                return {"week": week, "url": page, "pdf": pdf, "text": text[:7000]}
+            m = re.search(r'["\'](/content/[^"\']*jpm_am_wmr\.model\.json[^"\']*)["\']', r.text)
+            if not m:
+                log("  J.P. Morgan data file not found on page")
+                continue
+            mj = _CSESS.get(urllib.parse.urljoin(page, html.unescape(m.group(1))), timeout=20).json()
+            w = json.loads(mj["wmrJson"]) if isinstance(mj.get("wmrJson"), str) else (mj.get("wmrJson") or {})
+            W, as_of = w.get("WMI") or {}, w.get("AsOf") or ""
+            try:
+                week_d = dt.datetime.strptime(as_of, "%m/%d/%Y").date()
+                if (et_now().date() - week_d).days > 10:
+                    log(f"  J.P. Morgan recap is old ({as_of}); skipped")
+                    continue
+                week = week_d.strftime("%B %-d, %Y")
+            except ValueError:
+                week = as_of
+            parts = []
+            tw = clean(W.get("ThoughtOfTheWeek") or "")
+            if tw:
+                take = clean(mj.get("thoughtOfTheWeekTakeAway") or "")
+                parts.append("Thought of the Week (J.P. Morgan commentary): " + tw + (f" Takeaway: {take}" if take else ""))
+            for key, label in (("WeekInReview", "Week in review"), ("WeekAhead", "Week ahead")):
+                v = clean(str(W.get(key) or "").replace("\n", "; "))
+                if v:
+                    parts.append(f"{label}: {v}")
+            for key, label in (("Equities", "Equity returns, %"), ("Characteristics", "Valuations"), ("Key Rates", "Key rates, %"),
+                               ("Fixed Income", "Fixed income, %"), ("Commodities", "Commodities"), ("Currencies", "Currencies")):
+                t = _jpm_table(W.get(key))
+                if t:
+                    parts.append(f"{label}: {t}")
+            for key, label in (("SectorReturnCharts", "S&P 500 sector returns, %"), ("StyleReturnCharts", "Style returns (V=value, B=blend, G=growth; L/M/S=large/mid/small cap), %")):
+                for per, rows in (W.get(key) or {}).items():
+                    t = ", ".join(f"{html.unescape(str(x.get('Row'))).replace(chr(92), ' ')}{(' ' + x['Col']) if x.get('Col') else ''} {x.get('Value')}" for x in rows if isinstance(x, dict))
+                    if t:
+                        parts.append(f"{label} ({per}): {t}")
+            text = "\n".join(parts)
+            log(f"  J.P. Morgan recap: week of {week or '?'}, {len(text)} chars, thought of the week {'yes' if tw else 'no'}")
+            if len(text) >= 300:
+                return {"week": week, "url": page, "text": text[:9000]}
         except Exception as e:  # noqa: BLE001
             log(f"  J.P. Morgan recap failed: {type(e).__name__}: {str(e)[:100]}")
     return None
@@ -670,7 +680,7 @@ def brief_prompt(b):
     J = b.get("_jpm")
     if J:
         L.append(f"\nBACKGROUND — J.P. Morgan Asset Management, Weekly Market Recap (week of {J['week'] or 'n/a'}). "
-                 "Weekly context written by J.P. Morgan; may predate today's data:\n" + J["text"])
+                 "Weekly commentary and data from J.P. Morgan, as of the prior week's close; it may predate today's data:\n" + J["text"])
     return "\n".join(L)
 
 
@@ -682,7 +692,7 @@ Facts:
 - Percent moves you mention must match the data. Round to one decimal. Yield moves are in basis points (bp).
 - You MAY explain market mechanics using widely accepted relationships, framed as how markets typically respond (e.g. higher yields raise the discount rate on future earnings, which weighs most on richly valued growth stocks; a stronger dollar tends to pressure commodities and multinational earnings; a hot inflation print pushes out rate-cut expectations). Do not present these as new facts or attach numbers to them.
 - When the headlines don't explain a move, say so plainly rather than guessing. Never mention Fed rate hikes, cuts or decisions unless a headline says so.
-- If a J.P. Morgan weekly recap is provided, use it only as background for the bigger picture. Paraphrase in your own words, attribute it ("J.P. Morgan's weekly recap notes..."), never quote more than 10 words, and prefer today's data where they differ.
+- If a J.P. Morgan weekly recap is provided, use it as background for the bigger picture (the week's themes, year-to-date performance, sector leadership, valuations). Paraphrase in your own words and attribute it ("J.P. Morgan's weekly recap notes..."); never quote more than 10 words. Numbers taken from it must be attributed and dated (e.g. "the S&P 500 trades at 18.2x forward earnings, per J.P. Morgan as of Nov 13"). Prefer today's data where they differ.
 - Cite headlines by their [number] in "src". Every driver must cite at least one headline that directly supports it.
 - Neutral, professional tone. No investment advice (no buy/sell/hold, no allocation changes), no predictions, no hype.
 

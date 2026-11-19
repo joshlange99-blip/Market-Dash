@@ -43,7 +43,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install browser-grade HTTP client
-        run: pip install --quiet curl_cffi pypdf
+        run: pip install --quiet curl_cffi
       - name: Build brief
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
