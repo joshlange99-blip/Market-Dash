@@ -1,19 +1,30 @@
-"""One-off probe: where does J.P. Morgan's Weekly Market Recap text live? Writes structure only (no article text)."""
-import re
+"""One-off probe: structure of J.P. Morgan's Weekly Market Recap data file (key paths and sizes only)."""
+import re, json
+from urllib.parse import urljoin
 from curl_cffi import requests as r
 S = r.Session(impersonate="chrome")
-out = []
-for page in ["https://am.jpmorgan.com/us/en/asset-management/adv/insights/market-insights/market-updates/weekly-market-recap/",
-             "https://am.jpmorgan.com/us/en/asset-management/per/insights/market-insights/market-updates/weekly-market-recap/"]:
-    x = S.get(page, timeout=30); h = x.text
-    out.append(f"== {page}\nstatus {x.status_code} len {len(h)}")
-    for pat in ["week in review", "week ahead", "View and download PDF", "Week of", "application/json", "__NEXT_DATA__", ".model.json", "data-src", "/content/dam/"]:
-        out.append(f"  {pat!r}: {len(re.findall(re.escape(pat), h, re.I))}")
-    for u in sorted(set(re.findall(r'["\'(]([^"\'()\s]+?\.(?:pdf|json))["\')]', h)))[:40]:
-        out.append(f"  url: {u}")
-    for u in sorted(set(re.findall(r'["\'](/[^"\'\s]*weekly-market-recap[^"\'\s]*)["\']', h)))[:30]:
-        out.append(f"  wmr: {u}")
-    i = h.lower().find("week of")
-    if i >= 0:
-        out.append("  tags near 'Week of': " + " ".join(re.findall(r"<(\w+)[^>]*class=\"([^\"]{0,60})\"", h[max(0, i-1500):i+200]))[:600])
-open("probe.txt", "w").write("\n".join(out))
+page = "https://am.jpmorgan.com/us/en/asset-management/adv/insights/market-insights/market-updates/weekly-market-recap/"
+h = S.get(page, timeout=30).text
+m = re.search(r'["\'](/content/[^"\']*jpm_am_wmr\.model\.json[^"\']*)["\']', h)
+out = [f"model url found: {bool(m)}"]
+if m:
+    x = S.get(urljoin(page, m.group(1)), timeout=30)
+    out.append(f"status {x.status_code} len {len(x.text)} type {x.headers.get('content-type')}")
+    try:
+        j = x.json()
+        def walk(o, p=""):
+            if isinstance(o, dict):
+                for k, v in o.items(): walk(v, f"{p}.{k}")
+            elif isinstance(o, list):
+                out.append(f"{p}[] list len {len(o)}")
+                for i, v in enumerate(o[:3]): walk(v, f"{p}[{i}]")
+            elif isinstance(o, str):
+                flag = " PDF" if ".pdf" in o.lower() else ""
+                short = o if (len(o) < 70 and not re.search(r"[a-z]{4,} [a-z]{4,} [a-z]{4,} [a-z]{4,}", o)) else ""
+                out.append(f"{p}: str {len(o)}{flag} {short!r}" if short or flag else f"{p}: str {len(o)}")
+            else:
+                out.append(f"{p}: {type(o).__name__} {o!r}"[:120])
+        walk(j)
+    except Exception as e:
+        out.append(f"not json: {e} :: {x.text[:200]!r}")
+open("probe.txt", "w").write("\n".join(out[:400]))
